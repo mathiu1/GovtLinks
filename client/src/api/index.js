@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API = axios.create({ baseURL: 'https://govtlinks.onrender.com' });
+const API = axios.create({ baseURL: 'https://govtlinks.onrender.com/api' });
 
 export default API;
 

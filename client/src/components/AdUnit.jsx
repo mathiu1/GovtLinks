@@ -42,7 +42,7 @@ const AdUnit = ({ slot, format = 'auto', layoutKey, style = {}, className = '', 
                 data-ad-format={format}
                 data-full-width-responsive="true"
                 data-ad-layout-key={layoutKey}
-                data-adtest={isLocalhost ? "on" : "off"}
+                data-ad-test={isLocalhost ? "on" : "off"}
             ></ins>
         </div>
     );
