@@ -5,6 +5,7 @@ const dotenv = require('dotenv');
 const apiRoutes = require('./routes/api');
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
+const path = require('path');
 
 dotenv.config();
 
