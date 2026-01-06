@@ -72,6 +72,7 @@ const Home = ({ isSidebarOpen, closeSidebar }) => {
     ];
 
     const displayedItems = useMemo(() => {
+        if (!Array.isArray(items)) return [];
         return items.filter(item => {
             const content = JSON.stringify(item).toLowerCase();
             const query = searchQuery.toLowerCase();

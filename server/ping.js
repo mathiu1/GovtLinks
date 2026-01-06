@@ -1,4 +1,4 @@
-const URL = "https://aadhavmadhav.onrender.com/api/ping";
+const URL = "https://govtlinks.onrender.com/api/ping";
 
 console.log(`Keep-alive ping configured for: ${URL}`);
 
