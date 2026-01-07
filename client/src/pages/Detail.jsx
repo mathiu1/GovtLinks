@@ -147,30 +147,41 @@ const Detail = () => {
 
                                     {item.steps && item.steps.length > 0 ? (
                                         item.steps.map((step, index) => (
-                                            <motion.div
-                                                key={index}
-                                                initial={{ opacity: 0, x: -10 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                transition={{ delay: index * 0.1 }}
-                                                className="relative flex gap-3 md:gap-6 p-4 md:p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 hover:border-blue-200 dark:hover:border-blue-800 transition-colors group md:ml-4"
-                                            >
-                                                <div className="hidden md:flex flex-shrink-0 w-14 h-14 rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 text-slate-400 group-hover:border-blue-500 group-hover:text-blue-600 dark:group-hover:border-blue-500 dark:group-hover:text-blue-400 items-center justify-center font-bold text-xl shadow-sm transition-all z-10">
-                                                    {index + 1}
-                                                </div>
-                                                {/* Mobile number */}
-                                                <div className="md:hidden flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-sm">
-                                                    {index + 1}
-                                                </div>
+                                            <React.Fragment key={index}>
+                                                <motion.div
+                                                    initial={{ opacity: 0, x: -10 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    transition={{ delay: index * 0.1 }}
+                                                    className="relative flex gap-3 md:gap-6 p-4 md:p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 hover:border-blue-200 dark:hover:border-blue-800 transition-colors group md:ml-4"
+                                                >
+                                                    <div className="hidden md:flex flex-shrink-0 w-14 h-14 rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 text-slate-400 group-hover:border-blue-500 group-hover:text-blue-600 dark:group-hover:border-blue-500 dark:group-hover:text-blue-400 items-center justify-center font-bold text-xl shadow-sm transition-all z-10">
+                                                        {index + 1}
+                                                    </div>
+                                                    {/* Mobile number */}
+                                                    <div className="md:hidden flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-sm">
+                                                        {index + 1}
+                                                    </div>
 
-                                                <div>
-                                                    <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                                        {language === 'en' ? step.title_en : step.title_ta}
-                                                    </h4>
-                                                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                                                        {language === 'en' ? step.desc_en : step.desc_ta}
-                                                    </p>
-                                                </div>
-                                            </motion.div>
+                                                    <div>
+                                                        <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                                            {language === 'en' ? step.title_en : step.title_ta}
+                                                        </h4>
+                                                        <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                                                            {language === 'en' ? step.desc_en : step.desc_ta}
+                                                        </p>
+                                                    </div>
+                                                </motion.div>
+                                                {/* Inject Ad every 3 steps */}
+                                                {(index + 1) % 3 === 0 && (
+                                                    <div className="md:ml-4">
+                                                        <AdUnit
+                                                            slot="6018402331" // Reusing footer slot for now or create new
+                                                            testLabel={`Step Ad ${index + 1}`}
+                                                            className="w-full min-h-[200px] shadow-sm rounded-2xl"
+                                                        />
+                                                    </div>
+                                                )}
+                                            </React.Fragment>
                                         ))
                                     ) : (
                                         <p className="text-slate-500 dark:text-slate-400 italic p-6 bg-slate-50 dark:bg-slate-800 rounded-2xl text-center border border-dashed border-slate-200 dark:border-slate-700">

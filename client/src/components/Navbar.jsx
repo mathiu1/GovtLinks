@@ -103,7 +103,7 @@ const Navbar = ({ toggleSidebar }) => {
                                 className="flex items-center gap-2 px-3 md:px-5 py-2 md:py-2.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-sm hover:shadow-lg hover:shadow-slate-200 dark:hover:shadow-slate-800/50 transform hover:-translate-y-0.5 transition-all"
                             >
                                 <FaSignInAlt />
-                                <span>{language === 'en' ? 'Login' : 'உள்நுழைய'}</span>
+                                <span className="hidden md:inline">{language === 'en' ? 'Login' : 'உள்நுழைய'}</span>
                             </Link>
                         )}
                     </div>

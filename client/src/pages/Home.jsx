@@ -10,6 +10,9 @@ import AdUnit from '../components/AdUnit';
 // --- Sidebar Item Component ---
 const SidebarItem = memo(({ topic, selectedTopic, onClick, language }) => {
     const isSelected = selectedTopic === topic.id;
+
+
+
     return (
         <button
             onClick={() => onClick(topic.id)}
@@ -52,6 +55,7 @@ const Home = ({ isSidebarOpen, closeSidebar }) => {
         { id: 'voter', en: 'Voter ID', ta: 'வாக்காளர் அட்டை', icon: <FaIdCard /> },
         { id: 'ration', en: 'Ration Card', ta: 'ரேஷன் கார்டு', icon: <FaIdCard /> },
         { id: 'passport', en: 'Passport', ta: 'பாஸ்போர்ட்', icon: <FaGlobe /> },
+
         { id: 'pf', en: 'PF / EPF', ta: 'பிஎஃப்', icon: <FaFileAlt /> },
         { id: 'tax', en: 'Income Tax', ta: 'வருமான வரி', icon: <FaLandmark /> },
         { id: 'land', en: 'Patta / Chitta', ta: 'பட்டா / சிட்டா', icon: <FaFileAlt /> },
@@ -112,8 +116,8 @@ const Home = ({ isSidebarOpen, closeSidebar }) => {
         let adCount = 0;
         displayedItems.forEach((item, index) => {
             result.push(item);
-            // Inject ad every 6 items
-            if ((index + 1) % 6 === 0) {
+            // Inject ad every 3 items
+            if ((index + 1) % 3 === 0) {
                 adCount++;
                 const isVideo = adCount % 2 === 0; // Alternate formats
                 result.push({
@@ -204,6 +208,15 @@ const Home = ({ isSidebarOpen, closeSidebar }) => {
                     <span className="self-start md:self-auto text-xs font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 dark:text-slate-400 px-3 py-1.5 rounded-full uppercase tracking-wide">
                         {displayedItems.length} {language === 'en' ? 'Results Found' : 'முடிவுகள்'}
                     </span>
+                </div>
+
+                {/* --- Category / Filter Ad Area --- */}
+                <div className="mb-8">
+                    <AdUnit
+                        testLabel="Category Header Ad"
+                        format="horizontal"
+                        className="w-full min-h-[90px] shadow-sm rounded-xl"
+                    />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 pb-20">
