@@ -4,21 +4,17 @@ import React, { useEffect, useState } from 'react';
 // Paste your Adsterra / Monetag / Other Ad Network Script below between the backticks.
 // Make sure to include the full HTML/Script provided by the network.
 const CUSTOM_AD_CODE = `
-<!-- PLACEHOLDER: Professional Ad Placeholder -->
-<div style="width:100%; height:100%; min-height:250px; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); color:#64748b; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-align:center; padding:20px; box-sizing:border-box; border-radius:16px; position:relative; overflow:hidden;">
-    
-    <!-- Sponsored Badge -->
-    <div style="position:absolute; top:10px; right:10px; background:#e2e8f0; color:#94a3b8; font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px; text-transform:uppercase; letter-spacing:0.5px;">Sponsored</div>
-    
-    <!-- Icon/Graphic -->
-    <div style="width:48px; height:48px; margin-bottom:12px; opacity:0.2;">
-        <svg viewBox="0 0 24 24" fill="currentColor" style="width:100%; height:100%;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-    </div>
-
-    <!-- Main Text -->
-    <p style="margin:0; font-weight:600; font-size:14px; color:#475569;">Demo Advertisement</p>
-    <p style="margin:4px 0 0 0; font-size:12px; opacity:0.6;">Content will appear here shortly</p>
-</div>
+<!-- Adsterra 300x250 Banner Code -->
+<script type="text/javascript">
+	atOptions = {
+		'key' : '791494071ca2b42117aef2768c07fbc5',
+		'format' : 'iframe',
+		'height' : 250,
+		'width' : 300,
+		'params' : {}
+	};
+</script>
+<script type="text/javascript" src="https://www.highperformanceformat.com/791494071ca2b42117aef2768c07fbc5/invoke.js"></script>
 `;
 // -------------------------------
 
