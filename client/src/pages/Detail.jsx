@@ -68,7 +68,7 @@ const Detail = () => {
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-white dark:bg-slate-900 rounded-[2rem] p-8 md:p-12 shadow-xl shadow-slate-200/50 dark:shadow-black/20 border border-slate-100 dark:border-slate-800 relative overflow-hidden"
+                        className="bg-white dark:bg-slate-900 rounded-[2rem] p-4 md:p-12 shadow-xl shadow-slate-200/50 dark:shadow-black/20 border border-slate-100 dark:border-slate-800 relative overflow-hidden"
                     >
                         {/* Decorative background blob */}
                         <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
@@ -85,10 +85,10 @@ const Detail = () => {
                                             {item.sub_category}
                                         </span>
                                     </div>
-                                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white leading-tight mb-6 tracking-tight">
+                                    <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white leading-tight mb-6 tracking-tight">
                                         {language === 'en' ? item.title_en : item.title_ta}
                                     </h1>
-                                    <p className="text-lg text-slate-600 dark:text-slate-300 mb-12 leading-relaxed max-w-3xl">
+                                    <p className="text-base md:text-lg text-slate-600 dark:text-slate-300 mb-12 leading-relaxed max-w-3xl">
                                         {language === 'en' ? item.description_en : item.description_ta}
                                     </p>
                                 </div>
@@ -152,7 +152,7 @@ const Detail = () => {
                                                 initial={{ opacity: 0, x: -10 }}
                                                 animate={{ opacity: 1, x: 0 }}
                                                 transition={{ delay: index * 0.1 }}
-                                                className="relative flex gap-6 p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 hover:border-blue-200 dark:hover:border-blue-800 transition-colors group md:ml-4"
+                                                className="relative flex gap-3 md:gap-6 p-4 md:p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 hover:border-blue-200 dark:hover:border-blue-800 transition-colors group md:ml-4"
                                             >
                                                 <div className="hidden md:flex flex-shrink-0 w-14 h-14 rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 text-slate-400 group-hover:border-blue-500 group-hover:text-blue-600 dark:group-hover:border-blue-500 dark:group-hover:text-blue-400 items-center justify-center font-bold text-xl shadow-sm transition-all z-10">
                                                     {index + 1}
