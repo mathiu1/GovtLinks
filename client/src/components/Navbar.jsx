@@ -27,26 +27,26 @@ const Navbar = ({ toggleSidebar }) => {
             transition={{ type: 'spring', stiffness: 100, damping: 20 }}
             className="fixed top-0 left-0 right-0 z-50 h-20 flex items-center bg-white/70 dark:bg-[#0B1120]/70 backdrop-blur-xl border-b border-white/20 dark:border-white/5 supports-[backdrop-filter]:bg-white/60"
         >
-            <div className="container mx-auto px-4 lg:px-12 flex justify-between items-center h-full max-w-7xl">
-                <div className="flex items-center gap-6">
+            <div className="container mx-auto px-2 md:px-4 lg:px-12 flex justify-between items-center h-full max-w-7xl">
+                <div className="flex items-center gap-2 md:gap-6">
                     <button
                         className="lg:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-95"
                         onClick={toggleSidebar}
                         aria-label="Menu"
                     >
-                        <FaBars className="text-xl" />
+                        <FaBars className="text-lg md:text-xl" />
                     </button>
                     <Link to="/" className="flex items-center gap-2 group">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30 group-hover:scale-105 transition-transform duration-300">
-                            <span className="font-bold text-xl">G</span>
+                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30 group-hover:scale-105 transition-transform duration-300">
+                            <span className="font-bold text-lg md:text-xl">G</span>
                         </div>
-                        <span className="text-xl md:text-2xl font-bold tracking-tight text-slate-800 dark:text-white group-hover:opacity-90 transition-opacity">
+                        <span className="hidden xs:inline text-lg md:text-2xl font-bold tracking-tight text-slate-800 dark:text-white group-hover:opacity-90 transition-opacity">
                             Govt<span className="text-blue-600 dark:text-blue-400">Links</span>
                         </span>
                     </Link>
                 </div>
 
-                <div className="flex items-center gap-3 md:gap-4">
+                <div className="flex items-center gap-1 md:gap-4">
                     <button
                         onClick={toggleLanguage}
                         className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-95 border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
@@ -57,14 +57,14 @@ const Navbar = ({ toggleSidebar }) => {
                     {/* Mobile Language Toggle (Icon Only) */}
                     <button
                         onClick={toggleLanguage}
-                        className="md:hidden p-3 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+                        className="md:hidden p-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
                     >
                         <FaGlobe />
                     </button>
 
                     <button
                         onClick={toggleTheme}
-                        className="p-3 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-orange-500 dark:hover:text-yellow-400 transition-all active:scale-95 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 shadow-sm"
+                        className="p-2.5 md:p-3 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-orange-500 dark:hover:text-yellow-400 transition-all active:scale-95 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 shadow-sm"
                         aria-label="Toggle Theme"
                     >
                         {theme === 'light' ? <FaMoon className="text-lg" /> : <FaSun className="text-lg" />}
