@@ -55,7 +55,8 @@ app.use(
           "'self'",
           "https://pagead2.googlesyndication.com",
           "https://realizationnewestfangs.com",
-          "https://ep1.adtrafficquality.google", // New google ad domain
+          "https://ep1.adtrafficquality.google",
+          "https://wayfarerorthodox.com", // New ad domain
         ],
         objectSrc: ["'none'"],
         upgradeInsecureRequests: [],
