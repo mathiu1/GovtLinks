@@ -25,48 +25,48 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // --- Enterprise Security Headers ---
-app.use(
-  helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: [
-          "'self'",
-          "'unsafe-inline'",
-          "'unsafe-eval'", // often needed for ads
-          "https://pagead2.googlesyndication.com",
-          "https://www.google-analytics.com",
-          "https://pl28421962.effectivegatecpm.com",
-          "https://tpc.googlesyndication.com",
-          "https://www.highperformanceformat.com", // New from user image
-          "https://preferencenail.com", // New from user image
-        ],
-        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-        fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        imgSrc: ["'self'", "data:", "https:", "http:"], // Allow external images for dynamic content
-        frameSrc: [
-          "'self'",
-          "https://www.youtube.com",
-          "https://googleads.g.doubleclick.net",
-          "https://tpc.googlesyndication.com",
-          "https://www.highperformanceformat.com", // New
-        ],
-        connectSrc: [
-          "'self'",
-          "https://pagead2.googlesyndication.com",
-          "https://realizationnewestfangs.com",
-          "https://ep1.adtrafficquality.google",
-          "https://wayfarerorthodox.com", // New ad domain
-        ],
-        objectSrc: ["'none'"],
-        upgradeInsecureRequests: [],
-      },
-    },
-    // Disable cross-origin-embedder-policy to allow external ads/images if causing issues,
-    // but enabling it is more secure. For ads, we often need to relax it.
-    crossOriginEmbedderPolicy: false,
-  })
-);
+// app.use(
+//   helmet({
+//     contentSecurityPolicy: {
+//       directives: {
+//         defaultSrc: ["'self'"],
+//         scriptSrc: [
+//           "'self'",
+//           "'unsafe-inline'",
+//           "'unsafe-eval'", // often needed for ads
+//           "https://pagead2.googlesyndication.com",
+//           "https://www.google-analytics.com",
+//           "https://pl28421962.effectivegatecpm.com",
+//           "https://tpc.googlesyndication.com",
+//           "https://www.highperformanceformat.com", // New from user image
+//           "https://preferencenail.com", // New from user image
+//         ],
+//         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+//         fontSrc: ["'self'", "https://fonts.gstatic.com"],
+//         imgSrc: ["'self'", "data:", "https:", "http:"], // Allow external images for dynamic content
+//         frameSrc: [
+//           "'self'",
+//           "https://www.youtube.com",
+//           "https://googleads.g.doubleclick.net",
+//           "https://tpc.googlesyndication.com",
+//           "https://www.highperformanceformat.com", // New
+//         ],
+//         connectSrc: [
+//           "'self'",
+//           "https://pagead2.googlesyndication.com",
+//           "https://realizationnewestfangs.com",
+//           "https://ep1.adtrafficquality.google",
+//           "https://wayfarerorthodox.com", // New ad domain
+//         ],
+//         objectSrc: ["'none'"],
+//         upgradeInsecureRequests: [],
+//       },
+//     },
+//     // Disable cross-origin-embedder-policy to allow external ads/images if causing issues,
+//     // but enabling it is more secure. For ads, we often need to relax it.
+//     crossOriginEmbedderPolicy: false,
+//   })
+// );
 
 // DDoS / Brute Force Prevention
 const limiter = rateLimit({
