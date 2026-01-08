@@ -10,7 +10,9 @@ export default defineConfig({
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom', 'framer-motion'],
           icons: ['react-icons'],
-          utils: ['axios', 'moment'] // assuming these might be used or added
+          utils: ['axios']
+          // Removed 'moment' because it might not be installed or needed. 
+          // If you use moment, run 'npm install moment' in client folder.
         }
       }
     },
