@@ -40,6 +40,19 @@
   @apply bg-slate-300 dark:bg-slate-600;
 }
 
+/* Explicit class for horizontal scrollbars to ensure they are visible but slim */
+.custom-scrollbar::-webkit-scrollbar {
+  height: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-slate-200 dark:bg-slate-700 rounded-full;
+}
+
 /* Glassmorphism Utilities - Refined */
 .glass-panel {
   @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/50 dark:border-white/10;

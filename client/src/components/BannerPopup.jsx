@@ -8,19 +8,22 @@ const BannerPopup = () => {
     const [isVisible, setIsVisible] = useState(false);
     const location = useLocation();
 
-    // Do not show on Admin pages
-    if (location.pathname.startsWith('/admin')) {
-        return null;
-    }
-
     useEffect(() => {
+        // Do not show on Admin pages
+        if (location.pathname.startsWith('/admin')) return;
+
         // Show banner after 5 seconds delay
         const timer = setTimeout(() => {
             setIsVisible(true);
         }, 5000);
 
         return () => clearTimeout(timer);
-    }, []);
+    }, [location.pathname]);
+
+    // Do not show on Admin pages
+    if (location.pathname.startsWith('/admin')) {
+        return null;
+    }
 
     if (!isVisible) return null;
 

@@ -21,10 +21,14 @@ const CUSTOM_AD_CODE = `
 const AdUnit = ({ slot, format = 'auto', layoutKey, style = {}, className = '', testLabel = 'Ad Space' }) => {
     // Check environment
     const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    // Disable ads completely on localhost
+    if (isLocalhost) return null;
+
     const isRender = window.location.hostname.includes('onrender.com');
 
-    // Use Custom Ad logic for Render (Subdomains) or Localhost testing
-    const useCustomAds = isRender || isLocalhost;
+    // Use Custom Ad logic for Render (Subdomains)
+    const useCustomAds = isRender;
 
     useEffect(() => {
         if (!useCustomAds) {

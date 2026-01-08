@@ -25,5 +25,6 @@ router.post('/track-visit', async (req, res) => {
 
 router.get('/sync', syncController.syncData);
 router.get('/items', syncController.getAllItems);
+router.get('/items/:id', syncController.getItemById); // New Route for Single Item
 
 module.exports = router;

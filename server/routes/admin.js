@@ -3,23 +3,36 @@ const router = express.Router();
 const Item = require('../models/Item');
 const User = require('../models/User');
 const Analytics = require('../models/Analytics');
+const { logAction } = require('../utils/auditLogger'); // Import Logger
+const jwt = require('jsonwebtoken');
 
 // Middleware to check if admin (Simplified)
-// In production, verify JWT first
 const isAdmin = async (req, res, next) => {
-    // For now trust the request if valid token logic handled in front/gateway or added here
-    // We will assume this route is protected by a general auth middleware usually, 
-    // but for speed lets just implement the logic in the controllers or wrapper
-    next();
+    try {
+        const token = req.cookies.token;
+        if (!token) throw new Error('No token');
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if (!decoded.isAdmin) throw new Error('Not authorized');
+
+        req.user = decoded; // Attach for logger
+        next();
+    } catch (error) {
+        return res.status(401).json({ message: 'Unauthorized: Admin access required' });
+    }
 };
 
-// Get Dashboard Stats (Real Data with Filtering)
+router.use(isAdmin); // Protect ALL admin routes
+
+// Get Dashboard Stats
 router.get('/stats', async (req, res) => {
     try {
-        const { range, start, end } = req.query; // range: 'today', 'week', ... | start, end: YYYY-MM-DD
+        // ... existing stats logic (read-only, minimal logging needed)
+        // Keeping existing logic for brevity, just wrapping the rest...
+        const { range, start, end } = req.query;
 
         let startDate = new Date();
-        startDate.setHours(0, 0, 0, 0); // Default to today
+        startDate.setHours(0, 0, 0, 0);
         let endDate = new Date();
         endDate.setHours(23, 59, 59, 999);
 
@@ -32,7 +45,6 @@ router.get('/stats', async (req, res) => {
         } else if (range === 'custom' && start && end) {
             startDate = new Date(start);
             endDate = new Date(end);
-            // Adjust hours to cover full days
             startDate.setHours(0, 0, 0, 0);
             endDate.setHours(23, 59, 59, 999);
         }
@@ -40,7 +52,6 @@ router.get('/stats', async (req, res) => {
         const startDateStr = startDate.toISOString().split('T')[0];
         const endDateStr = endDate.toISOString().split('T')[0];
 
-        // 1. Fetch Period Analytics (For Charts and "Activity" Cards)
         const analyticsData = await Analytics.find({
             date: { $gte: startDateStr, $lte: endDateStr }
         }).sort({ date: 1 });
@@ -49,11 +60,9 @@ router.get('/stats', async (req, res) => {
         const periodMemberVisits = analyticsData.reduce((acc, curr) => acc + (curr.memberVisits || 0), 0);
         const periodNewRegistrations = analyticsData.reduce((acc, curr) => acc + (curr.newRegistrations || 0), 0);
 
-        // 2. Fetch Absolute Totals (For "Total Users" Card - Context independent usually desired)
         const totalSystemUsers = await User.countDocuments({});
         const totalSystemMembers = await User.countDocuments({ role: 'user' });
 
-        // Format data for chart
         const growthData = analyticsData.map(day => ({
             date: day.date,
             users: day.newRegistrations || 0,
@@ -63,17 +72,53 @@ router.get('/stats', async (req, res) => {
         }));
 
         res.json({
-            // Absolute Counts (Snapshot)
             totalUsers: totalSystemUsers,
             totalMembers: totalSystemMembers,
-
-            // Period Counts (Activity)
             periodNewUsers: periodNewRegistrations,
             periodMemberVisits: periodMemberVisits,
             periodGuestVisits: periodGuestVisits,
-
             growthData
         });
+
+        logAction('VIEW_ADMIN_DASHBOARD', req); // Log View
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Get All Users
+router.get('/users', async (req, res) => {
+    try {
+        const users = await User.find().select('-password').sort({ createdAt: -1 });
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Update User Role
+router.put('/users/:id', async (req, res) => {
+    try {
+        const { role } = req.body;
+        const user = await User.findByIdAndUpdate(req.params.id, { role }, { new: true }).select('-password');
+
+        logAction('UPDATE_USER_ROLE', req, { targetUserId: req.params.id, newRole: role }); // Log
+
+        res.json(user);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+});
+
+// Delete User
+router.delete('/users/:id', async (req, res) => {
+    try {
+        await User.findByIdAndDelete(req.params.id);
+
+        logAction('DELETE_USER', req, { targetUserId: req.params.id }); // Log
+
+        res.json({ message: 'User deleted' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -86,6 +131,9 @@ router.post('/items', async (req, res) => {
     try {
         const newItem = new Item(req.body);
         await newItem.save();
+
+        logAction('CREATE_ITEM', req, { itemId: newItem._id, title: req.body.title_en }); // Log
+
         res.json(newItem);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -96,6 +144,9 @@ router.post('/items', async (req, res) => {
 router.put('/items/:id', async (req, res) => {
     try {
         const updatedItem = await Item.findByIdAndUpdate(req.params.id, req.body, { new: true });
+
+        logAction('UPDATE_ITEM', req, { itemId: req.params.id }); // Log
+
         res.json(updatedItem);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -106,6 +157,9 @@ router.put('/items/:id', async (req, res) => {
 router.delete('/items/:id', async (req, res) => {
     try {
         await Item.findByIdAndDelete(req.params.id);
+
+        logAction('DELETE_ITEM', req, { itemId: req.params.id }); // Log
+
         res.json({ message: 'Item deleted' });
     } catch (error) {
         res.status(500).json({ message: error.message });

@@ -1,5 +1,4 @@
 import React, { createContext, useState, useEffect } from 'react';
-import { jwtDecode } from 'jwt-decode';
 import API from '../api';
 
 export const AuthContext = createContext();
@@ -9,39 +8,37 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
+        const checkAuth = async () => {
             try {
-                const decoded = jwtDecode(token);
-                // Check expiry
-                if (decoded.exp * 1000 < Date.now()) {
-                    localStorage.removeItem('token');
-                    setUser(null);
-                } else {
-                    setUser(decoded);
-                    // Optionally fetch full user profile here
-                }
+                const res = await API.get('/auth/me');
+                setUser(res.data);
             } catch (err) {
-                localStorage.removeItem('token');
+                // Not authenticated
+                setUser(null);
+            } finally {
+                setLoading(false);
             }
-        }
-        setLoading(false);
+        };
+        checkAuth();
     }, []);
 
-    const login = async (username, password) => {
-        const res = await API.post('/auth/login', { username, password });
-        const { token, user } = res.data;
-        localStorage.setItem('token', token);
-        setUser({ ...user, ...jwtDecode(token) });
-        return user;
+    const login = async (identifier, password) => {
+        const res = await API.post('/auth/login', { identifier, password });
+        setUser(res.data.user);
+        return res.data.user;
     };
 
-    const register = async (username, password) => {
-        await API.post('/auth/register', { username, password });
+    const register = async (userData) => {
+        // userData includes username, email, password
+        await API.post('/auth/register', userData);
     };
 
-    const logout = () => {
-        localStorage.removeItem('token');
+    const logout = async () => {
+        try {
+            await API.post('/auth/logout');
+        } catch (error) {
+            console.error("Logout failed", error);
+        }
         setUser(null);
     };
 
