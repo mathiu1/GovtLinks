@@ -136,6 +136,7 @@ app.get("/api/ping", (req, res) => {
   res.send("API is running...");
 });
 
+require(ping.js);
 app.use("/api/banners", bannerRoutes);
 app.use("/api", apiRoutes);
 app.use("/api/auth", authRoutes);
