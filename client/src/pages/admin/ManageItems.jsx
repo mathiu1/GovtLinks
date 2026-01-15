@@ -34,21 +34,31 @@ const ManageItems = ({ pageCategory }) => {
 
     const fetchItems = async () => {
         try {
-            const res = await API.get('/items');
+            const res = await API.get('/admin/items'); // Fetch full data without cache
             setItems(res.data);
         } catch (error) {
             console.error("Failed to fetch items", error);
         }
     };
 
-    const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to delete this item?')) {
-            try {
-                await API.delete(`/admin/items/${id}`);
-                fetchItems();
-            } catch (error) {
-                console.error("Delete failed", error);
-            }
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState(null);
+
+    const checkDelete = (item) => {
+        setItemToDelete(item);
+        setIsDeleteModalOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!itemToDelete) return;
+        try {
+            await API.delete(`/admin/items/${itemToDelete._id}`);
+            fetchItems();
+            setIsDeleteModalOpen(false);
+            setItemToDelete(null);
+        } catch (error) {
+            console.error("Delete failed", error);
+            alert("Failed to delete item");
         }
     };
 
@@ -301,7 +311,7 @@ const ManageItems = ({ pageCategory }) => {
                                             <button onClick={() => handleEdit(item)} className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors" title="Edit">
                                                 <FiEdit2 />
                                             </button>
-                                            <button onClick={() => handleDelete(item._id)} className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors" title="Delete">
+                                            <button onClick={() => checkDelete(item)} className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors" title="Delete">
                                                 <FiTrash2 />
                                             </button>
                                         </div>
@@ -335,7 +345,7 @@ const ManageItems = ({ pageCategory }) => {
                                     <button onClick={() => handleEdit(item)} className="p-2 text-blue-600 bg-blue-50 dark:bg-blue-900/20 rounded-lg" title="Edit">
                                         <FiEdit2 />
                                     </button>
-                                    <button onClick={() => handleDelete(item._id)} className="p-2 text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg" title="Delete">
+                                    <button onClick={() => checkDelete(item)} className="p-2 text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg" title="Delete">
                                         <FiTrash2 />
                                     </button>
                                 </div>
@@ -681,6 +691,27 @@ const ManageItems = ({ pageCategory }) => {
                             <button onClick={handleSubmit} type="button" className="px-8 py-2.5 rounded-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:-translate-y-0.5 transition-all">
                                 {currentItem ? 'Save Changes' : 'Publish Content'}
                             </button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
+            {/* Delete Confirmation Modal */}
+            {isDeleteModalOpen && createPortal(
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl shadow-2xl animate-scale-in border border-slate-100 dark:border-slate-800 overflow-hidden">
+                        <div className="p-8 flex flex-col items-center text-center">
+                            <div className="w-16 h-16 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 flex items-center justify-center text-3xl mb-4">
+                                <FiTrash2 />
+                            </div>
+                            <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-2">Delete Item?</h2>
+                            <p className="text-slate-500 dark:text-slate-400 mb-6 font-medium">
+                                Are you sure you want to delete <b>{itemToDelete?.title_en}</b>? This action cannot be undone.
+                            </p>
+                            <div className="flex gap-3 w-full">
+                                <button onClick={() => setIsDeleteModalOpen(false)} className="flex-1 py-3.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors">Cancel</button>
+                                <button onClick={confirmDelete} className="flex-1 py-3.5 rounded-xl font-bold bg-red-500 text-white shadow-lg shadow-red-500/30 hover:bg-red-600 transition-all">Delete</button>
+                            </div>
                         </div>
                     </div>
                 </div>,

@@ -3,9 +3,11 @@ import { fetchItems, prefetchItem } from '../api'; // Import prefetch
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { LanguageContext } from '../context/LanguageContext';
-import { FaLayerGroup, FaFileAlt, FaIdCard, FaLandmark, FaSeedling, FaFemale, FaGraduationCap, FaHome, FaGlobe, FaBus, FaFileContract, FaBriefcase, FaHeartbeat, FaChevronRight, FaSearch, FaBolt, FaTimes, FaFingerprint, FaAddressCard, FaVoteYea, FaShoppingBasket, FaPassport, FaPiggyBank, FaRupeeSign, FaMapMarkedAlt, FaCar, FaFileSignature, FaLightbulb } from 'react-icons/fa';
+import { FaLayerGroup, FaFileAlt, FaIdCard, FaLandmark, FaSeedling, FaFemale, FaGraduationCap, FaHome, FaGlobe, FaBus, FaFileContract, FaBriefcase, FaHeartbeat, FaChevronRight, FaSearch, FaBolt, FaTimes, FaFingerprint, FaAddressCard, FaVoteYea, FaShoppingBasket, FaPassport, FaPiggyBank, FaRupeeSign, FaMapMarkedAlt, FaCar, FaFileSignature, FaLightbulb, FaRobot, FaCheckCircle } from 'react-icons/fa';
 import Hero from '../components/Hero';
 import AdUnit from '../components/AdUnit';
+
+import { serviceTopics, schemeTopics, careerTopics } from '../constants/topicData.jsx';
 
 import BannerSlider from '../components/BannerSlider';
 
@@ -146,63 +148,223 @@ const ServiceIcon = memo(({ config, className }) => {
     return <span className={className || "text-lg"}>{config.icon}</span>;
 });
 
-// --- Collapsible Section Component ---
-const CollapsibleSidebarSection = ({ title, children, defaultOpen = true }) => {
-    const [isOpen, setIsOpen] = useState(defaultOpen);
+// --- Service Card Component ---
+const ServiceCard = memo(({ item, language, navigate, prefetchItem }) => {
+    const iconConfig = getCategoryIcon(item.sub_category);
+    const isJob = item.category === 'Job';
+    const isExam = item.category === 'Exam';
 
     return (
-        <div className="mb-4">
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="w-full flex items-center justify-between px-4 py-2 mb-2 text-xs font-bold text-slate-400 uppercase tracking-widest hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-            >
-                <span>{title}</span>
-                <FaChevronRight className={`transition-transform duration-200 ${isOpen ? 'rotate-90' : 'rotate-0'}`} />
-            </button>
-            <AnimatePresence initial={false}>
-                {isOpen && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden"
-                    >
-                        <div className="space-y-1">
-                            {children}
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </div>
-    );
-};
-
-// --- Sidebar Item Component ---
-const SidebarItem = memo(({ topic, selectedTopic, onClick, language }) => {
-    const isSelected = selectedTopic === topic.id;
-
-    return (
-        <button
-            onClick={() => onClick(topic.id)}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group text-left ${isSelected
-                ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400 font-semibold'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                }`}
+        <motion.div
+            layout
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            whileHover={{ y: -8, transition: { duration: 0.2 } }}
+            onClick={() => navigate(`/detail/${item._id}`)}
+            onMouseEnter={() => prefetchItem(item._id)}
+            className="group relative flex flex-col h-full bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-[2rem] p-6 border border-white/50 dark:border-slate-800/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.3)] hover:shadow-[0_40px_80px_-20px_rgba(30,58,138,0.15)] dark:hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.5)] transition-all duration-300 cursor-pointer overflow-hidden"
         >
-            <span className={`text-lg transition-colors ${isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`}>
-                {topic.icon}
-            </span>
-            <span className="text-sm flex-1">{language === 'en' ? topic.en : topic.ta}</span>
-            {isSelected && <motion.div layoutId="active-pill" className="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400" />}
-        </button>
+            {/* Glossy Header */}
+            <div className="flex justify-between items-start mb-6 relative z-10">
+                <div className="flex flex-col gap-1.5">
+                    <span className="inline-flex px-3 py-1 rounded-full bg-slate-900/5 dark:bg-white/5 text-slate-500 dark:text-slate-400 text-[9px] font-black uppercase tracking-[0.15em] border border-slate-900/5 dark:border-white/5 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-500 transition-all duration-300">
+                        {item.sub_category}
+                    </span>
+                    {isJob && item.vacancies && (
+                        <span className="inline-flex px-3 py-1 bg-green-500/10 text-green-600 dark:text-green-400 rounded-full text-[9px] font-black uppercase tracking-wider border border-green-500/10">
+                            {language === 'en' ? `+${item.vacancies} Posts` : `+${item.vacancies} இடங்கள்`}
+                        </span>
+                    )}
+                </div>
+
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 overflow-hidden shadow-inner border border-white/40 dark:border-white/10 ${iconConfig.color} group-hover:scale-110 group-hover:rotate-3 shadow-xl`}>
+                    <ServiceIcon config={iconConfig} className="text-2xl" />
+                </div>
+            </div>
+
+            {/* Content Area */}
+            <div className="relative z-10 flex-1 flex flex-col">
+                <h3 className="text-xl font-[900] text-slate-900 dark:text-white mb-3 leading-[1.2] tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    {language === 'en' ? item.title_en : item.title_ta}
+                </h3>
+
+                <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed line-clamp-2 mb-6 font-medium opacity-80 group-hover:opacity-100 transition-opacity">
+                    {language === 'en' ? item.description_en : item.description_ta}
+                </p>
+
+                {(isJob || isExam) && item.applicationEndDate && (
+                    <div className="mt-auto mb-4 flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
+                            {language === 'en' ? 'Closing:' : 'முடிவு:'} <span className="text-red-500/80">{new Date(item.applicationEndDate).toLocaleDateString()}</span>
+                        </span>
+                    </div>
+                )}
+            </div>
+
+            {/* Footer Interaction */}
+            <div className="relative z-10 pt-4 border-t border-slate-900/5 dark:border-white/5 flex items-center justify-between">
+                <span className="text-[11px] font-black text-blue-600/80 dark:text-blue-400/80 uppercase tracking-widest group-hover:text-blue-600 transition-colors">
+                    {language === 'en' ? 'Explore Details' : 'விவரங்களை காண்க'}
+                </span>
+                <FaChevronRight className="text-[10px] text-blue-400 group-hover:translate-x-1 transition-transform" />
+            </div>
+
+            {/* Hover Glimmer Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none -translate-x-full group-hover:translate-x-full ease-in-out duration-[1500ms]"></div>
+
+            {/* Abstract Background Bloom */}
+            <div className={`absolute -right-12 -bottom-12 w-32 h-32 rounded-full blur-3xl opacity-0 group-hover:opacity-10 transition-all duration-700 ${iconConfig.color}`}></div>
+        </motion.div>
     );
 });
 
-const Home = ({ isSidebarOpen, closeSidebar }) => {
+
+// --- Exam Prep Section ---
+const ExamPrepSection = ({ language, navigate }) => {
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mb-12 relative group"
+        >
+            {/* Mesh Gradient / Animated Background */}
+            <div className="absolute inset-0 bg-blue-600/5 dark:bg-blue-400/5 rounded-[2.5rem] -m-4 blur-2xl group-hover:bg-blue-500/10 transition-colors duration-700"></div>
+
+            <div className="relative overflow-hidden bg-gradient-to-br from-blue-700 via-indigo-800 to-blue-900 rounded-[2.5rem] p-8 md:p-16 shadow-[0_40px_80px_-15px_rgba(30,58,138,0.3)]">
+                {/* Decorative mesh blobs */}
+                <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-blue-400/20 rounded-full blur-[80px] md:blur-[100px] animate-pulse"></div>
+                <div className="absolute -bottom-20 -left-20 w-64 h-64 md:w-80 md:h-80 bg-indigo-500/20 rounded-full blur-[80px] md:blur-[100px] animate-pulse delay-700"></div>
+
+                <div className="relative z-10 grid lg:grid-cols-2 gap-12 items-center text-left">
+                    <div>
+                        <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-white text-[10px] font-black uppercase tracking-[0.2em] mb-6 backdrop-blur-xl"
+                        >
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                            </span>
+                            {language === 'en' ? 'Live Examination Prep' : 'நேரடி தேர்வு பயிற்சி'}
+                        </motion.div>
+
+                        <h2 className={`${language === 'ta' ? 'text-2xl md:text-6xl' : 'text-3xl md:text-6xl'} font-[1000] text-white mb-6 leading-[1.3] md:leading-[1.1] tracking-tight`}>
+                            {language === 'en' ? 'Conquer the Top' : 'சிகரத்தை எட்டிப் பிடியுங்கள்'} <br />
+                            <span className="text-blue-300">{language === 'en' ? 'Govt Exams' : 'அரசுத் தேர்வுகள்'}</span>
+                        </h2>
+
+                        <p className="text-blue-100/80 text-base md:text-xl mb-10 leading-relaxed max-w-lg font-medium">
+                            {language === 'en'
+                                ? 'Join thousands of aspirants mastering TNPSC, UPSC, and SSC with validated patterns and expert-curated modules.'
+                                : 'ஆயிரக்கணக்கான அரசுப் பணி ஆர்வலர்களுடன் இணைந்து TNPSC, UPSC மற்றும் SSC தேர்வுகளை எளிதாக எதிர்கொள்ளுங்கள்.'}
+                        </p>
+
+                        <button
+                            onClick={() => navigate('/quiz')}
+                            className={`w-full sm:w-auto inline-flex items-center justify-center gap-4 px-10 py-5 bg-white text-blue-900 rounded-2xl font-[1000] ${language === 'ta' ? 'text-base' : 'text-lg'} shadow-[0_20px_40px_-10px_rgba(255,255,255,0.2)] hover:shadow-[0_25px_50px_-12px_rgba(255,255,255,0.4)] hover:-translate-y-1.5 transition-all active:scale-[0.98] group/btn`}
+                        >
+                            {language === 'en' ? 'Start Free Mock' : 'இலவச பயிற்சியைத் தொடங்கு'}
+                            <FaChevronRight className="text-sm group-hover/btn:translate-x-1 transition-transform" />
+                        </button>
+                    </div>
+
+                    <div className="relative hidden lg:grid grid-cols-2 gap-4">
+                        {/* Interactive Bento Tags */}
+                        <motion.div whileHover={{ scale: 1.05 }} className="p-8 rounded-3xl bg-white/10 backdrop-blur-2xl border border-white/20 shadow-2xl flex flex-col justify-end h-40 group/item">
+                            <span className="text-white text-3xl font-black mb-1">TNPSC</span>
+                            <span className="text-blue-200/60 text-[10px] font-bold uppercase tracking-widest">{language === 'en' ? 'Group I, II, IV' : 'குரூப் I, II, IV'}</span>
+                        </motion.div>
+                        <motion.div whileHover={{ scale: 1.05 }} className="p-8 rounded-3xl bg-white/10 backdrop-blur-2xl border border-white/20 shadow-2xl flex flex-col justify-end h-40 mt-8 group/item">
+                            <span className="text-white text-3xl font-black mb-1">UPSC</span>
+                            <span className="text-blue-200/60 text-[10px] font-bold uppercase tracking-widest">{language === 'en' ? 'Prelims & Mains' : 'முதல்நிலை & முதன்மை'}</span>
+                        </motion.div>
+                        <motion.div whileHover={{ scale: 1.05 }} className="p-8 rounded-3xl bg-white/10 backdrop-blur-2xl border border-white/20 shadow-2xl flex flex-col justify-end h-40 -mt-8 group/item">
+                            <span className="text-white text-3xl font-black mb-1">SSC</span>
+                            <span className="text-blue-200/60 text-[10px] font-bold uppercase tracking-widest">{language === 'en' ? 'CGL, CHSL, MTS' : 'CGL, CHSL, MTS'}</span>
+                        </motion.div>
+                        <motion.div whileHover={{ scale: 1.05 }} className="bg-gradient-to-br from-blue-400 to-indigo-500 p-8 rounded-3xl shadow-2xl flex items-center justify-center h-40 group/item">
+                            <FaBolt className="text-white text-5xl animate-bounce" />
+                        </motion.div>
+                    </div>
+                </div>
+            </div>
+        </motion.div>
+    );
+};
+
+const AIPracticeSection = ({ language, navigate }) => {
+    return (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            className="mb-20 relative group"
+        >
+            {/* Soft Shadow Glow under the card */}
+            <div className="absolute inset-x-0 -bottom-10 h-20 bg-indigo-600/10 dark:bg-indigo-400/5 blur-[80px] rounded-full mx-auto w-4/5 pointer-events-none"></div>
+
+            <div className="relative overflow-hidden bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl border border-indigo-100/50 dark:border-slate-800/50 rounded-[3rem] p-8 md:p-16 flex flex-col items-center text-center shadow-[0_30px_60px_-15px_rgba(0,0,0,0.03)] dark:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)]">
+
+                <div className="max-w-3xl">
+                    <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] mb-10 shadow-sm border border-indigo-600/5">
+                        <FaRobot className="animate-spin-slow" />
+                        {language === 'en' ? 'Adaptive AI Core' : 'மேம்பட்ட AI கற்றல்'}
+                    </div>
+
+                    <h2 className={`${language === 'ta' ? 'text-2xl md:text-6xl' : 'text-3xl md:text-6xl'} font-[1000] text-slate-900 dark:text-white mb-8 leading-[1.3] md:leading-[1.2] tracking-tight`}>
+                        {language === 'en' ? 'Supercharge Learning with' : 'உங்கள் கற்றலை ஊக்குவியுங்கள்'} <br />
+                        <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{language === 'en' ? 'Personal AI Tutoring' : 'தனிப்பயனாக்கப்பட்ட AI பயிற்சி'}</span>
+                    </h2>
+
+                    <p className={`text-slate-600 dark:text-slate-400 ${language === 'ta' ? 'text-lg md:text-2xl' : 'text-xl md:text-2xl'} mb-12 leading-relaxed max-w-2xl mx-auto font-medium`}>
+                        {language === 'en'
+                            ? 'Experience real-time intelligence that adapts to your speed. Instant explanations, deep analytics, and limitless subjects.'
+                            : 'உங்கள் கற்றல் வேகத்திற்கு ஏற்ப தன்னை மாற்றிக்கொள்ளும் நுண்ணறிவை அனுபவியுங்கள். உடனடி விளக்கங்கள் மற்றும் முடிவில்லா பாடங்கள்.'}
+                    </p>
+
+                    <div className="flex flex-wrap items-center justify-center gap-3 md:gap-6 mb-12 md:mb-14">
+                        {[
+                            { icon: <FaCheckCircle className="text-green-500" />, label_en: 'Smart Explanations', label_ta: 'விளக்கங்கள்' },
+                            { icon: <FaLightbulb className="text-yellow-500" />, label_en: 'Adaptive', label_ta: 'மாறும் தன்மை' },
+                            { icon: <FaRobot className="text-blue-500" />, label_en: 'Bi-lingual', label_ta: 'இருமொழி' }
+                        ].map((item, idx) => (
+                            <div key={idx} className="flex items-center gap-2 px-4 py-2.5 md:px-6 md:py-4 rounded-xl md:rounded-2xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-md shadow-sm border border-white/50 dark:border-slate-700/50">
+                                {item.icon}
+                                <span className="text-[11px] md:text-sm font-black text-slate-700 dark:text-slate-200">{language === 'en' ? item.label_en : item.label_ta}</span>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="relative inline-block">
+                        <div className="absolute inset-0 bg-blue-600 blur-3xl opacity-20 group-hover:opacity-40 transition-opacity rounded-full"></div>
+                        <button
+                            onClick={() => navigate('/ai', { state: { mode: 'study' } })}
+                            className={`relative flex items-center gap-5 px-12 py-6 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-[2rem] font-[1000] ${language === 'ta' ? 'text-lg' : 'text-xl'} md:text-2xl shadow-2xl hover:shadow-blue-500/40 hover:-translate-y-2 transition-all active:scale-[0.98] overflow-hidden group/btn`}
+                        >
+                            <span className="relative z-10">{language === 'en' ? 'Start AI Practice' : 'AI பயிற்சியைத் தொடங்கவும்'}</span>
+                            <FaRobot size={24} className="relative z-10 group-hover/btn:rotate-[360deg] transition-transform duration-1000 ease-in-out" />
+                            <div className="absolute inset-0 bg-white/20 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></div>
+                        </button>
+                    </div>
+                </div>
+
+                {/* Visual Depth Particles - Neural Network feel */}
+                <div className="absolute top-10 right-10 w-2 h-2 md:w-3 md:h-3 rounded-full bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.8)] animate-pulse"></div>
+                <div className="absolute bottom-20 left-10 w-3 h-3 md:w-4 md:h-4 rounded-full bg-indigo-500 shadow-[0_0_25px_rgba(99,102,241,0.8)] animate-pulse delay-1000"></div>
+                <div className="absolute top-1/2 left-10 w-2 h-2 rounded-full bg-blue-400 opacity-20 animate-ping"></div>
+                <div className="absolute top-20 left-1/4 opacity-[0.02] dark:opacity-[0.05] pointer-events-none uppercase font-black text-5xl md:text-8xl -rotate-12 select-none hidden sm:block">INTELLIGENCE</div>
+            </div>
+        </motion.div>
+    );
+};
+
+const Home = ({ isSidebarOpen, closeSidebar, selectedTopic, setSelectedTopic, handleTopicClick }) => {
     const [items, setItems] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [selectedTopic, setSelectedTopic] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');
     const { language } = useContext(LanguageContext);
     const navigate = useNavigate();
@@ -222,40 +384,6 @@ const Home = ({ isSidebarOpen, closeSidebar }) => {
         };
         getItems();
     }, []);
-
-    const serviceTopics = [
-        { id: 'aadhar', en: 'Aadhaar', ta: 'ஆதார்', icon: <FaFingerprint /> },
-        { id: 'pan', en: 'PAN Card', ta: 'பான் கார்டு', icon: <FaAddressCard /> },
-        { id: 'voter', en: 'Voter ID', ta: 'வாக்காளர் அட்டை', icon: <FaVoteYea /> },
-        { id: 'ration', en: 'Ration Card', ta: 'ரேஷன் கார்டு', icon: <FaShoppingBasket /> },
-        { id: 'passport', en: 'Passport', ta: 'பாஸ்போர்ட்', icon: <FaPassport /> },
-
-        { id: 'pf', en: 'PF / EPF', ta: 'பிஎஃப்', icon: <FaPiggyBank /> },
-        { id: 'tax', en: 'Income Tax', ta: 'வருமான வரி', icon: <FaRupeeSign /> },
-        { id: 'land', en: 'Patta / Chitta', ta: 'பட்டா / சிட்டா', icon: <FaMapMarkedAlt /> },
-        { id: 'transport', en: 'Transport / RTO', ta: 'போக்குவரத்து', icon: <FaCar /> },
-        { id: 'revenue', en: 'Certificates (Revenue)', ta: 'வருவாய் துறை', icon: <FaFileSignature /> },
-        { id: 'employment', en: 'Employment', ta: 'வேலைவாய்ப்பு', icon: <FaBriefcase /> },
-        { id: 'utilities', en: 'Electricity / EB', ta: 'மின்சாரம் / EB', icon: <FaLightbulb /> },
-    ];
-
-    const schemeTopics = [
-        { id: 'all_schemes', en: 'All Schemes', ta: 'நலத்திட்டங்கள்', icon: <FaLayerGroup /> },
-        { id: 'agri', en: 'Agriculture', ta: 'விவசாயம்', icon: <FaSeedling /> },
-        { id: 'women', en: 'Women Welfare', ta: 'பெண்கள் நலம்', icon: <FaFemale /> },
-        { id: 'student', en: 'Student/Scholarship', ta: 'மாணவர்', icon: <FaGraduationCap /> },
-        { id: 'health', en: 'Health Schemes', ta: 'மருத்துவம்', icon: <FaHeartbeat /> },
-        { id: 'loan', en: 'Loans', ta: 'கடனுதவி', icon: <FaLandmark /> },
-        { id: 'housing', en: 'Housing', ta: 'வீட்டுவசதி', icon: <FaHome /> },
-    ];
-
-    const careerTopics = [
-        { id: 'all_career', en: 'Jobs & Exams', ta: 'வேலைவாய்ப்பு & தேர்வுகள்', icon: <FaBriefcase /> },
-        { id: 'job_state', en: 'State Govt Jobs', ta: 'மாநில அரசு வேலைகள்', icon: <FaLandmark /> },
-        { id: 'job_central', en: 'Central Govt Jobs', ta: 'மத்திய அரசு வேலைகள்', icon: <FaGlobe /> },
-        { id: 'exam_entrance', en: 'Entrance Exams', ta: 'நுழைவுத் தேர்வுகள்', icon: <FaFileAlt /> },
-        { id: 'job_railway', en: 'Railways', ta: 'ரயில்வே', icon: <FaBus /> },
-    ];
 
     const displayedItems = useMemo(() => {
         if (!Array.isArray(items)) return [];
@@ -301,14 +429,31 @@ const Home = ({ isSidebarOpen, closeSidebar }) => {
         });
     }, [items, selectedTopic, searchQuery]);
 
-    // Inject Ads randomly (approx every 6 items)
+    // Inject Ads and Special Features
     const displayedItemsWithAds = useMemo(() => {
         const result = [];
+
+        // Inject "Exam Prep" Feature Card at the top if appropriate
+        if (selectedTopic === 'all_career' || selectedTopic === 'exam_entrance' || selectedTopic === 'practice_quiz') {
+            result.push({
+                _id: 'feature-quiz-card',
+                isFeature: true,
+                title_en: 'Practice Exams (TNPSC, UPSC, SSC)',
+                title_ta: 'பயிற்சித் தேர்வுகள் (TNPSC, UPSC, SSC)',
+                description_en: 'Take free mock tests for all government exams. Improve your score with subject-wise quizzes.',
+                description_ta: 'அனைத்து அரசுத் தேர்வுகளுக்கும் இலவச இணையவழித் தேர்வுகள். பாடவாரியான வினாடி வினாக்கள்.',
+                category: 'Exam', // For color logic
+                sub_category: 'Exam Prep',
+                vacancies: null,
+                applicationEndDate: null
+            });
+        }
+
         let adCount = 0;
         displayedItems.forEach((item, index) => {
             result.push(item);
-            // Inject ad every 3 items
-            if ((index + 1) % 3 === 0) {
+            // Inject ad every 6 items
+            if ((index + 1) % 6 === 0) {
                 adCount++;
                 const isVideo = adCount % 2 === 0; // Alternate formats
                 result.push({
@@ -320,198 +465,104 @@ const Home = ({ isSidebarOpen, closeSidebar }) => {
             }
         });
         return result;
-    }, [displayedItems]);
-
-    const handleTopicClick = (id) => {
-        setSelectedTopic(id);
-        const element = document.getElementById('content-list');
-        if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
-        } else {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-        if (window.innerWidth <= 1024) closeSidebar();
-    };
+    }, [displayedItems, selectedTopic]);
 
     return (
-        <div className="flex min-h-screen pt-20">
-            {/* Mobile Sidebar Overlay */}
-            <AnimatePresence>
-                {isSidebarOpen && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 lg:hidden"
-                        onClick={closeSidebar}
-                    />
-                )}
-            </AnimatePresence>
-
-            {/* Sidebar */}
-            <aside
-                className={`fixed top-20 left-0 w-72 h-[calc(100vh-80px)] bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-r border-slate-200 dark:border-slate-800 overflow-y-auto transform transition-transform duration-300 ease-in-out z-50 lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-                    }`}
-            >
-                <div className="p-4 space-y-8 pb-20">
-                    <div>
-                        <button
-                            onClick={() => handleTopicClick('All')}
-                            className={`w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl transition-all duration-200 font-bold border ${selectedTopic === 'All'
-                                ? 'bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white shadow-md'
-                                : 'bg-white text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
-                                }`}
-                        >
-                            <FaLayerGroup />
-                            <span>{language === 'en' ? 'All Items' : 'அனைத்தும்'}</span>
-                        </button>
-                    </div>
-
-                    <CollapsibleSidebarSection title={language === 'en' ? 'Core Services' : 'முக்கிய சேவைகள்'}>
-                        {serviceTopics.map(topic => (
-                            <SidebarItem key={topic.id} topic={topic} selectedTopic={selectedTopic} onClick={handleTopicClick} language={language} />
-                        ))}
-                    </CollapsibleSidebarSection>
-
-                    <CollapsibleSidebarSection title={language === 'en' ? 'Welfare Schemes' : 'நலத்திட்டங்கள்'}>
-                        {schemeTopics.map(topic => (
-                            <SidebarItem key={topic.id} topic={topic} selectedTopic={selectedTopic} onClick={handleTopicClick} language={language} />
-                        ))}
-                    </CollapsibleSidebarSection>
-
-                    <CollapsibleSidebarSection title={language === 'en' ? 'Career & Education' : 'வேலைவாய்ப்பு & கல்வி'}>
-                        {careerTopics.map(topic => (
-                            <SidebarItem key={topic.id} topic={topic} selectedTopic={selectedTopic} onClick={handleTopicClick} language={language} />
-                        ))}
-                    </CollapsibleSidebarSection>
-                </div>
-            </aside>
+        <div className="flex min-h-screen pt-24 lg:pt-20">
+            {/* Sidebar is now global in App.jsx */}
 
             {/* Main Content */}
             <main className="flex-1 lg:ml-72 p-4 md:p-8 lg:p-12 w-full max-w-[100vw] overflow-x-hidden">
                 <Hero items={items} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
                 <BannerSlider />
+                {(selectedTopic === 'All' || selectedTopic === 'practice_quiz') && (
+                    <>
+                        <ExamPrepSection language={language} navigate={navigate} />
+                        <AIPracticeSection language={language} navigate={navigate} />
+                    </>
+                )}
 
-                <div id="content-list" className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pb-4 border-b border-slate-200 dark:border-slate-800">
-                    <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-                        <div className="w-1.5 h-8 bg-blue-600 rounded-full"></div>
-                        {selectedTopic === 'All' ? (language === 'en' ? 'All Services & Schemes' : 'அனைத்து சேவைகள் & திட்டங்கள்') :
-                            (language === 'en' ? [...serviceTopics, ...schemeTopics, ...careerTopics].find(t => t.id === selectedTopic)?.en : [...serviceTopics, ...schemeTopics, ...careerTopics].find(t => t.id === selectedTopic)?.ta)}
-                    </h2>
-                    <span className="self-start md:self-auto text-xs font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 dark:text-slate-400 px-3 py-1.5 rounded-full uppercase tracking-wide">
-                        {isLoading ? (language === 'en' ? 'Loading results...' : 'ஏற்றப்படுகிறது...') : `${displayedItems.length} ${language === 'en' ? 'Results Found' : 'முடிவுகள்'}`}
-                    </span>
-                </div>
-
-                {/* --- Category / Filter Ad Area --- */}
-                <div className="mb-8">
-                    <AdUnit
-                        testLabel="Category Header Ad"
-                        format="horizontal"
-                        className="w-full min-h-[90px] shadow-sm rounded-xl"
-                    />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 pb-20">
-                    {/* Skeleton Loader */}
-                    {isLoading && (
-                        Array.from({ length: 6 }).map((_, i) => (
-                            <div key={`skel-${i}`} className="col-span-1">
-                                <CardSkeleton />
-                            </div>
-                        ))
-                    )}
-
-                    {!isLoading && (
-                        <AnimatePresence mode="popLayout">
-                            {displayedItemsWithAds.map((item) => {
-                                if (item.isAd) {
-                                    return (
-                                        <motion.div
-                                            key={item._id}
-                                            layout
-                                            initial={{ opacity: 0, scale: 0.95 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            exit={{ opacity: 0, scale: 0.95 }}
-                                            className="col-span-1"
-                                        >
-                                            <AdUnit
-                                                testLabel={item.label}
-                                                className="h-full min-h-[300px] shadow-sm"
-                                                format="auto"
-                                            />
-                                        </motion.div>
-                                    );
-                                }
-
-                                return (
-                                    <motion.div
-                                        key={item._id}
-                                        layout
-                                        initial={{ opacity: 0, scale: 0.95 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        exit={{ opacity: 0, scale: 0.95 }}
-                                        transition={{ duration: 0.2 }}
-                                        onClick={() => navigate(`/detail/${item._id}`)}
-                                        onMouseEnter={() => prefetchItem(item._id)} // Prefetch on Hover
-                                        className="group relative bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-700 shadow-sm hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer flex flex-col h-full overflow-hidden"
-                                    >
-                                        <div className="flex justify-between items-start mb-4 relative z-10">
-                                            <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-bold uppercase tracking-wider group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                                                {item.sub_category}
-                                            </span>
-                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all overflow-hidden shadow-sm border border-slate-100 dark:border-slate-700 ${getCategoryIcon(item.sub_category).color}`}>
-                                                <ServiceIcon config={getCategoryIcon(item.sub_category)} className="text-xl" />
-                                            </div>
-                                        </div>
-
-                                        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2 leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors relative z-10">
-                                            {language === 'en' ? item.title_en : item.title_ta}
-                                        </h3>
-
-                                        <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed line-clamp-2 mb-2 flex-1 relative z-10">
-                                            {language === 'en' ? item.description_en : item.description_ta}
-                                        </p>
-
-                                        {/* Highlight Vacancies for Jobs */}
-                                        {item.category === 'Job' && item.vacancies && (
-                                            <div className="mb-2">
-                                                <span className="inline-block px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-xs font-bold border border-green-200 dark:border-green-800">
-                                                    {language === 'en' ? `Vacancies: ${item.vacancies}` : `காலியிடங்கள்: ${item.vacancies}`}
-                                                </span>
-                                            </div>
-                                        )}
-
-                                        {/* Show Dates for Jobs/Exams */}
-                                        {(item.category === 'Job' || item.category === 'Exam') && item.applicationEndDate && (
-                                            <div className="mb-4 text-xs text-slate-500 dark:text-slate-400 font-medium z-10 relative">
-                                                <span className="text-red-500 font-bold">{language === 'en' ? 'Last Date:' : 'கடைசி தேதி:'}</span> {new Date(item.applicationEndDate).toLocaleDateString()}
-                                            </div>
-                                        )}
-
-                                        <div className="pt-4 border-t border-slate-100 dark:border-slate-800 mt-auto flex items-center text-xs font-semibold text-slate-400 group-hover:text-blue-600 transition-colors relative z-10">
-                                            {language === 'en' ? 'Read More' : 'மேலும் படிக்க'}
-                                        </div>
-
-                                        {/* Hover Gradient Blob */}
-                                        <div className="absolute -right-10 -bottom-10 w-32 h-32 bg-blue-600/5 rounded-full blur-2xl group-hover:bg-blue-600/10 transition-colors duration-500 z-0"></div>
-                                    </motion.div>
-                                );
-                            })}
-                        </AnimatePresence>
-                    )}
-
-                    {!isLoading && displayedItems.length === 0 && (
-                        <div className="col-span-full py-20 text-center">
-                            <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
-                                <FaSearch className="text-2xl" />
-                            </div>
-                            <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300 mb-1">{language === 'en' ? 'No matches found' : 'முடிவுகள் இல்லை'}</h3>
-                            <p className="text-slate-500 dark:text-slate-500">{language === 'en' ? 'Try adjusting your search.' : 'வேறு தேடலை முயற்சிக்கவும்.'}</p>
+                {selectedTopic !== 'practice_quiz' && (
+                    <>
+                        <div id="content-list" className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pb-4 border-b border-slate-200 dark:border-slate-800">
+                            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                                <div className="w-1.5 h-8 bg-blue-600 rounded-full"></div>
+                                {selectedTopic === 'All' ? (language === 'en' ? 'All Services & Schemes' : 'அனைத்து சேவைகள் & திட்டங்கள்') :
+                                    (language === 'en' ? [...serviceTopics, ...schemeTopics, ...careerTopics].find(t => t.id === selectedTopic)?.en : [...serviceTopics, ...schemeTopics, ...careerTopics].find(t => t.id === selectedTopic)?.ta)}
+                            </h2>
+                            <span className="self-start md:self-auto text-xs font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 dark:text-slate-400 px-3 py-1.5 rounded-full uppercase tracking-wide">
+                                {isLoading ? (language === 'en' ? 'Loading results...' : 'ஏற்றப்படுகிறது...') : `${displayedItems.length} ${language === 'en' ? 'Results Found' : 'முடிவுகள்'}`}
+                            </span>
                         </div>
-                    )}
-                </div>
+
+                        {/* --- Category / Filter Ad Area --- */}
+                        <div className="mb-8">
+                            <AdUnit
+                                testLabel="Category Header Ad"
+                                format="horizontal"
+                                className="w-full min-h-[90px] shadow-sm rounded-xl"
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 pb-20">
+                            {/* Skeleton Loader */}
+                            {isLoading && (
+                                Array.from({ length: 6 }).map((_, i) => (
+                                    <div key={`skel-${i}`} className="col-span-1">
+                                        <CardSkeleton />
+                                    </div>
+                                ))
+                            )}
+
+                            {!isLoading && (
+                                <AnimatePresence mode="popLayout">
+                                    {displayedItemsWithAds.map((item) => {
+                                        if (item.isAd) {
+                                            return (
+                                                <motion.div
+                                                    key={item._id}
+                                                    layout
+                                                    initial={{ opacity: 0, scale: 0.95 }}
+                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    exit={{ opacity: 0, scale: 0.95 }}
+                                                    className="col-span-1 h-full"
+                                                >
+                                                    <AdUnit
+                                                        testLabel={item.label}
+                                                        className="h-full min-h-[350px] shadow-sm rounded-[2rem] overflow-hidden"
+                                                        format="auto"
+                                                    />
+                                                </motion.div>
+                                            );
+                                        }
+
+                                        return (
+                                            <div key={item._id} className="col-span-1">
+                                                <ServiceCard
+                                                    item={item}
+                                                    language={language}
+                                                    navigate={navigate}
+                                                    prefetchItem={prefetchItem}
+                                                />
+                                            </div>
+                                        );
+                                    })}
+                                </AnimatePresence>
+                            )}
+
+                            {!isLoading && displayedItems.length === 0 && (
+                                <div className="col-span-full py-20 text-center">
+                                    <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
+                                        <FaSearch className="text-2xl" />
+                                    </div>
+                                    <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300 mb-1">{language === 'en' ? 'No matches found' : 'முடிவுகள் இல்லை'}</h3>
+                                    <p className="text-slate-500 dark:text-slate-500">{language === 'en' ? 'Try adjusting your search.' : 'வேறு தேடலை முயற்சிக்கவும்.'}</p>
+                                </div>
+                            )}
+                        </div>
+                    </>
+                )}
             </main>
         </div>
     );

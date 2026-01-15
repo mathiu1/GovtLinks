@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-    baseURL:'https://govtlinks.onrender.com/api',
+    baseURL: 'https://govtlinks.onrender.com/api',
     withCredentials: true
 });
 

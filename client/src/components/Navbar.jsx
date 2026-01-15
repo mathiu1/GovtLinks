@@ -153,6 +153,11 @@ const Navbar = ({ toggleSidebar }) => {
                     </Link>
                 </div>
 
+                {/* Center: Navigation Links (Desktop) */}
+                <div className="hidden md:flex items-center gap-6">
+                    {/* Exam Prep link removed as populated in sidebar */}
+                </div>
+
                 {/* Right: Actions */}
                 <div className="flex items-center gap-2 md:gap-4">
                     {/* Language (Compact on Mobile) */}

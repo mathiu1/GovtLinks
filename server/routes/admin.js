@@ -126,6 +126,16 @@ router.delete('/users/:id', async (req, res) => {
 
 // CRUD Items
 
+// Read All (Admin View - No Cache, Full Details)
+router.get('/items', async (req, res) => {
+    try {
+        const items = await Item.find().sort({ createdAt: -1 });
+        res.json(items);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 // Create
 router.post('/items', async (req, res) => {
     try {

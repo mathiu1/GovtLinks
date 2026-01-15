@@ -1,6 +1,7 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { useNavigate, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import Sidebar from './components/Sidebar';
 import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { AuthProvider } from './context/AuthContext';
@@ -8,12 +9,15 @@ import AdminRoute from './components/AdminRoute';
 import Loading from './components/Loading';
 import BannerPopup from './components/BannerPopup';
 import API from './api';
+import ScrollToTop from './components/ScrollToTop';
 
 const Home = lazy(() => import('./pages/Home'));
 const Detail = lazy(() => import('./pages/Detail'));
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
-const NotFound = lazy(() => import('./pages/NotFound')); // Lazy load 404
+const Quiz = lazy(() => import('./pages/Quiz'));
+const AIChat = lazy(() => import('./pages/AIChat'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Admin Pages
 const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'));
@@ -24,6 +28,9 @@ const ManageBanners = lazy(() => import('./pages/admin/ManageBanners'));
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [selectedTopic, setSelectedTopic] = useState('All');
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const trackVisit = async () => {
@@ -50,6 +57,33 @@ function App() {
     setIsSidebarOpen(false);
   };
 
+  const handleTopicClick = (id) => {
+    setSelectedTopic(id);
+
+    // If we're not on home, navigate back so we can see the results
+    if (location.pathname !== '/') {
+      navigate('/', { state: { fromSidebar: true } });
+      // Scroll to top or list after navigation (delay for mount)
+      setTimeout(() => {
+        const element = document.getElementById('content-list');
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }, 100);
+    } else {
+      const element = document.getElementById('content-list');
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    if (window.innerWidth <= 1024) closeSidebar();
+  };
+
   return (
     <AuthProvider>
       <ThemeProvider>
@@ -63,25 +97,47 @@ function App() {
             </div>
 
             <div className="relative z-10">
+              <ScrollToTop />
+              <Navbar toggleSidebar={toggleSidebar} />
+
+              {/* Shared Sidebar */}
+              <Sidebar
+                isSidebarOpen={isSidebarOpen}
+                closeSidebar={closeSidebar}
+                selectedTopic={selectedTopic}
+                handleTopicClick={handleTopicClick}
+                navigate={navigate}
+              />
+
               <Suspense fallback={<Loading />}>
                 <Routes>
                   {/* Public Routes */}
                   <Route path="/" element={
-                    <>
-                      <Navbar toggleSidebar={toggleSidebar} />
-                      <Home isSidebarOpen={isSidebarOpen} closeSidebar={closeSidebar} />
-                    </>
+                    <Home
+                      isSidebarOpen={isSidebarOpen}
+                      closeSidebar={closeSidebar}
+                      selectedTopic={selectedTopic}
+                      setSelectedTopic={setSelectedTopic}
+                      handleTopicClick={handleTopicClick}
+                    />
                   } />
                   <Route path="/detail/:id" element={
-                    <>
-                      <Navbar toggleSidebar={toggleSidebar} />
-                      <Detail />
-                    </>
+                    <Detail />
+                  } />
+                  <Route path="/quiz" element={
+                    <Quiz
+                      isSidebarOpen={isSidebarOpen}
+                      closeSidebar={closeSidebar}
+                      handleTopicClick={handleTopicClick}
+                    />
+                  } />
+                  <Route path="/ai" element={
+                    <AIChat />
                   } />
 
                   {/* Auth Routes */}
-                  <Route path="/login" element={<><Navbar toggleSidebar={() => { }} /><Login /></>} />
-                  <Route path="/register" element={<><Navbar toggleSidebar={() => { }} /><Register /></>} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
 
                   {/* Admin Routes */}
                   <Route path="/admin" element={<AdminRoute />}>
@@ -106,7 +162,7 @@ function App() {
           </div>
         </LanguageProvider>
       </ThemeProvider>
-    </AuthProvider>
+    </AuthProvider >
   );
 }
 

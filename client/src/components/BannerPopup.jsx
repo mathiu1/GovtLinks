@@ -30,26 +30,26 @@ const BannerPopup = () => {
     return (
         <AnimatePresence>
             <motion.div
-                initial={{ opacity: 0, y: 100 }}
+                initial={{ opacity: 0, y: -50 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 100 }}
-                className="fixed bottom-4 right-4 z-50 w-[320px] md:w-[400px]"
+                exit={{ opacity: 0, y: -50 }}
+                className="fixed top-20 left-0 md:top-auto md:bottom-4 md:right-4 z-[60] w-full md:w-[400px] px-4 md:px-0"
             >
-                <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden relative">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden relative group">
                     <button
                         onClick={() => setIsVisible(false)}
-                        className="absolute top-2 right-2 z-10 w-8 h-8 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 hover:text-red-500 transition-colors"
+                        className="absolute top-2 right-2 z-10 w-7 h-7 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 hover:text-red-500 transition-colors shadow-sm"
                     >
-                        <FaTimes />
+                        <FaTimes className="text-xs" />
                     </button>
 
-                    <div className="p-1 pt-8 md:p-4 md:pt-8 bg-slate-50/50 dark:bg-slate-900/50">
-                        <h4 className="absolute top-3 left-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sponsored</h4>
+                    <div className="p-1 px-3 py-6 bg-slate-50/50 dark:bg-slate-900/50">
+                        <h4 className="absolute top-2 left-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Sponsored</h4>
                         {/* Use a slot suited for rectangle/banner ads */}
                         <AdUnit
                             slot="3792867709"
                             testLabel="Popup Ad Banner"
-                            className="!min-h-[250px] !bg-transparent !border-0"
+                            className="!min-h-[100px] md:!min-h-[250px] !bg-transparent !border-0"
                         />
                     </div>
                 </div>
