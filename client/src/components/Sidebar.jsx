@@ -1,6 +1,6 @@
 import React, { useState, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaLayerGroup, FaChevronRight, FaFileAlt, FaRobot } from 'react-icons/fa';
+import { FaLayerGroup, FaChevronRight, FaFileAlt, FaRobot, FaBolt } from 'react-icons/fa';
 import { serviceTopics, schemeTopics, careerTopics } from '../constants/topicData.jsx';
 import { LanguageContext } from '../context/LanguageContext';
 
@@ -103,6 +103,20 @@ const Sidebar = ({ isSidebarOpen, closeSidebar, selectedTopic, handleTopicClick,
                     >
                         <FaRobot />
                         <span>{language === 'en' ? 'AI Assistant' : 'AI உதவியாளர்'}</span>
+                    </button>
+
+                    <button
+                        onClick={() => {
+                            if (typeof handleTopicClick === 'function') handleTopicClick('activities');
+                            navigate('/activities');
+                        }}
+                        className={`w-full flex items-center justify-center gap-2 px-5 py-3 mt-3 rounded-xl transition-all duration-200 font-bold border ${selectedTopic === 'activities'
+                            ? 'bg-orange-500 text-white border-orange-500 shadow-md shadow-orange-500/30'
+                            : 'bg-orange-50 text-orange-700 border-orange-100 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800 hover:border-orange-300 dark:hover:border-orange-600'
+                            }`}
+                    >
+                        <FaBolt className="text-orange-500 group-hover:text-white" />
+                        <span>{language === 'en' ? 'Fun Activities' : 'செயல்பாடுகள்'}</span>
                     </button>
                 </div>
 

@@ -1,46 +1,50 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { useNavigate, Routes, Route, useLocation } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import Sidebar from './components/Sidebar';
-import { ThemeProvider } from './context/ThemeContext';
-import { LanguageProvider } from './context/LanguageContext';
-import { AuthProvider } from './context/AuthContext';
-import AdminRoute from './components/AdminRoute';
-import Loading from './components/Loading';
-import BannerPopup from './components/BannerPopup';
-import API from './api';
-import ScrollToTop from './components/ScrollToTop';
+import React, { useState, useEffect, Suspense, lazy } from "react";
+import { useNavigate, Routes, Route, useLocation } from "react-router-dom";
+import Navbar from "./components/Navbar";
+import Sidebar from "./components/Sidebar";
+import { ThemeProvider } from "./context/ThemeContext";
+import { LanguageProvider } from "./context/LanguageContext";
+import { AuthProvider } from "./context/AuthContext";
+import AdminRoute from "./components/AdminRoute";
+import Loading from "./components/Loading";
+import BannerPopup from "./components/BannerPopup";
+import API from "./api";
+import ScrollToTop from "./components/ScrollToTop";
 
-const Home = lazy(() => import('./pages/Home'));
-const Detail = lazy(() => import('./pages/Detail'));
-const Login = lazy(() => import('./pages/Login'));
-const Register = lazy(() => import('./pages/Register'));
-const Quiz = lazy(() => import('./pages/Quiz'));
-const AIChat = lazy(() => import('./pages/AIChat'));
-const NotFound = lazy(() => import('./pages/NotFound'));
+const Home = lazy(() => import("./pages/Home"));
+const Detail = lazy(() => import("./pages/Detail"));
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
+const Quiz = lazy(() => import("./pages/Quiz"));
+const AIChat = lazy(() => import("./pages/AIChat"));
+const Activities = lazy(() => import("./pages/Activities"));
+const GameQuiz = lazy(() => import("./pages/GameQuiz"));
+const QuestMap = lazy(() => import("./pages/QuestMap"));
+const ChronologyGame = lazy(() => import("./pages/ChronologyGame"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Admin Pages
-const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'));
-const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
-const ManageItems = lazy(() => import('./pages/admin/ManageItems'));
-const UsersList = lazy(() => import('./pages/admin/UsersList'));
-const ManageBanners = lazy(() => import('./pages/admin/ManageBanners'));
+const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const ManageItems = lazy(() => import("./pages/admin/ManageItems"));
+const UsersList = lazy(() => import("./pages/admin/UsersList"));
+const ManageBanners = lazy(() => import("./pages/admin/ManageBanners"));
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [selectedTopic, setSelectedTopic] = useState('All');
+  const [selectedTopic, setSelectedTopic] = useState("All");
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
     const trackVisit = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const type = token ? 'member' : 'guest';
+        const token = localStorage.getItem("token");
+        const type = token ? "member" : "guest";
 
-        if (!sessionStorage.getItem('visited')) {
-          sessionStorage.setItem('visited', 'true');
-          await API.post('/track-visit', { type });
+        if (!sessionStorage.getItem("visited")) {
+          sessionStorage.setItem("visited", "true");
+          await API.post("/track-visit", { type });
         }
       } catch (e) {
         console.error("Tracking failed", e);
@@ -61,23 +65,23 @@ function App() {
     setSelectedTopic(id);
 
     // If we're not on home, navigate back so we can see the results
-    if (location.pathname !== '/') {
-      navigate('/', { state: { fromSidebar: true } });
+    if (location.pathname !== "/") {
+      navigate("/", { state: { fromSidebar: true } });
       // Scroll to top or list after navigation (delay for mount)
       setTimeout(() => {
-        const element = document.getElementById('content-list');
+        const element = document.getElementById("content-list");
         if (element) {
-          element.scrollIntoView({ behavior: 'smooth' });
+          element.scrollIntoView({ behavior: "smooth" });
         } else {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          window.scrollTo({ top: 0, behavior: "smooth" });
         }
       }, 100);
     } else {
-      const element = document.getElementById('content-list');
+      const element = document.getElementById("content-list");
       if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
+        element.scrollIntoView({ behavior: "smooth" });
       } else {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }
     }
 
@@ -98,42 +102,57 @@ function App() {
 
             <div className="relative z-10">
               <ScrollToTop />
-              <Navbar toggleSidebar={toggleSidebar} />
+              {!["/chronology", "/quest", "/game"].includes(
+                location.pathname,
+              ) && <Navbar toggleSidebar={toggleSidebar} />}
 
-              {/* Shared Sidebar */}
-              <Sidebar
-                isSidebarOpen={isSidebarOpen}
-                closeSidebar={closeSidebar}
-                selectedTopic={selectedTopic}
-                handleTopicClick={handleTopicClick}
-                navigate={navigate}
-              />
+              {/* Shared Sidebar - Hidden in Games */}
+              {!["/chronology", "/quest", "/game"].includes(
+                location.pathname,
+              ) && (
+                <Sidebar
+                  isSidebarOpen={isSidebarOpen}
+                  closeSidebar={closeSidebar}
+                  selectedTopic={selectedTopic}
+                  handleTopicClick={handleTopicClick}
+                  navigate={navigate}
+                />
+              )}
 
               <Suspense fallback={<Loading />}>
                 <Routes>
                   {/* Public Routes */}
-                  <Route path="/" element={
-                    <Home
-                      isSidebarOpen={isSidebarOpen}
-                      closeSidebar={closeSidebar}
-                      selectedTopic={selectedTopic}
-                      setSelectedTopic={setSelectedTopic}
-                      handleTopicClick={handleTopicClick}
-                    />
-                  } />
-                  <Route path="/detail/:id" element={
-                    <Detail />
-                  } />
-                  <Route path="/quiz" element={
-                    <Quiz
-                      isSidebarOpen={isSidebarOpen}
-                      closeSidebar={closeSidebar}
-                      handleTopicClick={handleTopicClick}
-                    />
-                  } />
-                  <Route path="/ai" element={
-                    <AIChat />
-                  } />
+                  <Route
+                    path="/"
+                    element={
+                      <Home
+                        isSidebarOpen={isSidebarOpen}
+                        closeSidebar={closeSidebar}
+                        selectedTopic={selectedTopic}
+                        setSelectedTopic={setSelectedTopic}
+                        handleTopicClick={handleTopicClick}
+                      />
+                    }
+                  />
+                  <Route path="/detail/:id" element={<Detail />} />
+                  <Route
+                    path="/quiz"
+                    element={
+                      <Quiz
+                        isSidebarOpen={isSidebarOpen}
+                        closeSidebar={closeSidebar}
+                        handleTopicClick={handleTopicClick}
+                      />
+                    }
+                  />
+                  <Route path="/ai" element={<AIChat />} />
+                  <Route path="/activities" element={<Activities />} />
+                  <Route path="/game" element={<GameQuiz />} />
+                  <Route path="/quest" element={<QuestMap />} />
+                  <Route
+                    path="/chronology"
+                    element={<ChronologyGame isSidebarOpen={isSidebarOpen} />}
+                  />
 
                   {/* Auth Routes */}
                   <Route path="/login" element={<Login />} />
@@ -143,10 +162,22 @@ function App() {
                   <Route path="/admin" element={<AdminRoute />}>
                     <Route element={<AdminLayout />}>
                       <Route index element={<AdminDashboard />} />
-                      <Route path="services" element={<ManageItems pageCategory="Service" />} />
-                      <Route path="schemes" element={<ManageItems pageCategory="Scheme" />} />
-                      <Route path="jobs" element={<ManageItems pageCategory="Job" />} />
-                      <Route path="exams" element={<ManageItems pageCategory="Exam" />} />
+                      <Route
+                        path="services"
+                        element={<ManageItems pageCategory="Service" />}
+                      />
+                      <Route
+                        path="schemes"
+                        element={<ManageItems pageCategory="Scheme" />}
+                      />
+                      <Route
+                        path="jobs"
+                        element={<ManageItems pageCategory="Job" />}
+                      />
+                      <Route
+                        path="exams"
+                        element={<ManageItems pageCategory="Exam" />}
+                      />
                       <Route path="users" element={<UsersList />} />
                       <Route path="banners" element={<ManageBanners />} />
                     </Route>
@@ -158,11 +189,11 @@ function App() {
               </Suspense>
             </div>
 
-            <BannerPopup />
+            {/*<BannerPopup />*/}
           </div>
         </LanguageProvider>
       </ThemeProvider>
-    </AuthProvider >
+    </AuthProvider>
   );
 }
 

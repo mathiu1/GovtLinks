@@ -3,7 +3,7 @@ import { fetchItems, prefetchItem } from '../api'; // Import prefetch
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { LanguageContext } from '../context/LanguageContext';
-import { FaLayerGroup, FaFileAlt, FaIdCard, FaLandmark, FaSeedling, FaFemale, FaGraduationCap, FaHome, FaGlobe, FaBus, FaFileContract, FaBriefcase, FaHeartbeat, FaChevronRight, FaSearch, FaBolt, FaTimes, FaFingerprint, FaAddressCard, FaVoteYea, FaShoppingBasket, FaPassport, FaPiggyBank, FaRupeeSign, FaMapMarkedAlt, FaCar, FaFileSignature, FaLightbulb, FaRobot, FaCheckCircle } from 'react-icons/fa';
+import { FaLayerGroup, FaFileAlt, FaIdCard, FaLandmark, FaSeedling, FaFemale, FaGraduationCap, FaHome, FaGlobe, FaBus, FaFileContract, FaBriefcase, FaHeartbeat, FaChevronRight, FaSearch, FaBolt, FaTimes, FaFingerprint, FaAddressCard, FaVoteYea, FaShoppingBasket, FaPassport, FaPiggyBank, FaRupeeSign, FaMapMarkedAlt, FaCar, FaFileSignature, FaLightbulb, FaRobot, FaCheckCircle, FaGamepad } from 'react-icons/fa';
 import Hero from '../components/Hero';
 import AdUnit from '../components/AdUnit';
 
@@ -362,6 +362,57 @@ const AIPracticeSection = ({ language, navigate }) => {
     );
 };
 
+const ActivitySection = ({ language, navigate }) => {
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mb-12 relative group"
+        >
+            <div className="relative overflow-hidden bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl border border-orange-100 dark:border-orange-900/30 rounded-[2.5rem] p-8 md:p-12 shadow-xl border-t-4 border-t-orange-500">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div className="flex-1 text-left">
+                        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400 text-[10px] font-black uppercase tracking-widest mb-4">
+                            <FaBolt className="animate-pulse" /> {language === 'en' ? 'New Fun Zone' : 'புதிய விளையாட்டுப் பகுதி'}
+                        </span>
+                        <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white mb-4">
+                            {language === 'en' ? 'Activity Center' : 'செயல்பாட்டு மையம்'}
+                        </h2>
+                        <p className="text-lg text-slate-600 dark:text-slate-300 mb-8 max-w-xl font-medium">
+                            {language === 'en'
+                                ? 'Take a break from serious study! Spin the Daily Wheel for rewards, test your endurance in Survival Mode, and more.'
+                                : 'கற்றலுக்கு நடுவே ஒரு சிறிய இடைவேளை! தினசரி சக்கரம், சர்வைவல் முறை மற்றும் பல சுவாரஸ்யமான விளையாட்டுகள்.'}
+                        </p>
+
+                        <div className="flex flex-wrap gap-3">
+                            <button
+                                onClick={() => navigate('/activities')}
+                                className="px-8 py-4 rounded-xl bg-orange-500 text-white font-bold hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/30 flex items-center gap-2 active:scale-95"
+                            >
+                                <FaGamepad /> {language === 'en' ? 'Play Games' : 'விளையாடவும்'}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="relative w-full md:w-auto flex justify-center">
+                        <div className="relative w-40 h-40 md:w-56 md:h-56 bg-gradient-to-tr from-yellow-400 via-orange-500 to-red-500 rounded-[2rem] flex items-center justify-center shadow-2xl rotate-3 group-hover:rotate-6 transition-transform duration-500">
+                            <FaBolt className="text-6xl md:text-8xl text-white animate-pulse" />
+
+                            <div className="absolute -top-6 -right-6 bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-xl animate-bounce">
+                                <span className="text-2xl">❤️</span>
+                            </div>
+                            <div className="absolute -bottom-6 -left-6 bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-xl animate-bounce delay-700">
+                                <span className="text-2xl">🎁</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </motion.div>
+    );
+};
+
 const Home = ({ isSidebarOpen, closeSidebar, selectedTopic, setSelectedTopic, handleTopicClick }) => {
     const [items, setItems] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -378,7 +429,6 @@ const Home = ({ isSidebarOpen, closeSidebar, selectedTopic, setSelectedTopic, ha
             } catch (error) {
                 console.error(error);
             } finally {
-                // Minimum loading time for smooth UX if needed, or immediate
                 setIsLoading(false);
             }
         };
@@ -396,7 +446,6 @@ const Home = ({ isSidebarOpen, closeSidebar, selectedTopic, setSelectedTopic, ha
             if (selectedTopic === 'All') return true;
 
             switch (selectedTopic) {
-                // ... same logical blocks ...
                 case 'aadhar': return item.sub_category === 'Aadhaar';
                 case 'pan': return item.sub_category === 'PAN Card';
                 case 'voter': return item.sub_category === 'Voter ID';
@@ -417,7 +466,6 @@ const Home = ({ isSidebarOpen, closeSidebar, selectedTopic, setSelectedTopic, ha
                 case 'housing': return item.sub_category === 'Housing';
                 case 'loan': return item.sub_category === 'Loan';
 
-                // Career Filters
                 case 'all_career': return item.category === 'Job' || item.category === 'Exam';
                 case 'job_state': return item.category === 'Job' && item.sub_category === 'State Govt';
                 case 'job_central': return item.category === 'Job' && item.sub_category === 'Central Govt';
@@ -429,11 +477,8 @@ const Home = ({ isSidebarOpen, closeSidebar, selectedTopic, setSelectedTopic, ha
         });
     }, [items, selectedTopic, searchQuery]);
 
-    // Inject Ads and Special Features
     const displayedItemsWithAds = useMemo(() => {
         const result = [];
-
-        // Inject "Exam Prep" Feature Card at the top if appropriate
         if (selectedTopic === 'all_career' || selectedTopic === 'exam_entrance' || selectedTopic === 'practice_quiz') {
             result.push({
                 _id: 'feature-quiz-card',
@@ -442,20 +487,18 @@ const Home = ({ isSidebarOpen, closeSidebar, selectedTopic, setSelectedTopic, ha
                 title_ta: 'பயிற்சித் தேர்வுகள் (TNPSC, UPSC, SSC)',
                 description_en: 'Take free mock tests for all government exams. Improve your score with subject-wise quizzes.',
                 description_ta: 'அனைத்து அரசுத் தேர்வுகளுக்கும் இலவச இணையவழித் தேர்வுகள். பாடவாரியான வினாடி வினாக்கள்.',
-                category: 'Exam', // For color logic
+                category: 'Exam',
                 sub_category: 'Exam Prep',
                 vacancies: null,
                 applicationEndDate: null
             });
         }
-
         let adCount = 0;
         displayedItems.forEach((item, index) => {
             result.push(item);
-            // Inject ad every 6 items
             if ((index + 1) % 6 === 0) {
                 adCount++;
-                const isVideo = adCount % 2 === 0; // Alternate formats
+                const isVideo = adCount % 2 === 0;
                 result.push({
                     isAd: true,
                     _id: `ad-injected-${adCount}`,
@@ -469,9 +512,6 @@ const Home = ({ isSidebarOpen, closeSidebar, selectedTopic, setSelectedTopic, ha
 
     return (
         <div className="flex min-h-screen pt-24 lg:pt-20">
-            {/* Sidebar is now global in App.jsx */}
-
-            {/* Main Content */}
             <main className="flex-1 lg:ml-72 p-4 md:p-8 lg:p-12 w-full max-w-[100vw] overflow-x-hidden">
                 <Hero items={items} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
@@ -480,6 +520,7 @@ const Home = ({ isSidebarOpen, closeSidebar, selectedTopic, setSelectedTopic, ha
                     <>
                         <ExamPrepSection language={language} navigate={navigate} />
                         <AIPracticeSection language={language} navigate={navigate} />
+                        <ActivitySection language={language} navigate={navigate} />
                     </>
                 )}
 

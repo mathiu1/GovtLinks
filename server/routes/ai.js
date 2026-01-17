@@ -61,6 +61,31 @@ router.post('/chat', async (req, res) => {
     }
 });
 
+// --- Explain Answer Endpoint ---
+router.post('/explain', async (req, res) => {
+    try {
+        const { question, answer, options, language } = req.body;
+        const currentLang = language === 'ta' ? 'Tamil' : 'English';
+
+        // System prompt to act as an expert tutor
+        const systemPrompt = `Expert Tutor. Explain in ${currentLang}. Keep it concise (max 2 sentences).`;
+
+        // Prompt construction
+        const prompt = `Question: "${question}"\nCorrect Answer: "${answer}"\nOptions: ${JSON.stringify(options)}\nTask: Explain why "${answer}" is the correct answer. Provide a clear, educational reason.`;
+
+        const result = await callZeroKeyAI(prompt, systemPrompt, 2);
+
+        if (!result) {
+            return res.json({ text: language === 'ta' ? "விளக்கம் தற்போது கிடைக்கவில்லை." : "Explanation currently unavailable." });
+        }
+
+        res.json({ text: result });
+    } catch (error) {
+        console.error('Explain API Error:', error.message);
+        res.status(500).json({ error: 'AI explanation failed' });
+    }
+});
+
 // --- Study Mode ---
 router.post('/study', async (req, res) => {
     try {
@@ -116,6 +141,28 @@ router.post('/study', async (req, res) => {
     } catch (error) {
         console.error('Study Mode Error:', error.message);
         res.status(500).json({ error: 'AI processing failed' });
+    }
+});
+
+// --- AI Hint Endpoint ---
+router.post('/hint', async (req, res) => {
+    try {
+        const { question, options, language } = req.body;
+        const currentLang = language === 'ta' ? 'Tamil' : 'English';
+
+        const systemPrompt = `Game Master. Provide a short, fun "Did You Know?" style fact related to the topic of the answer. DO NOT reveal the answer directly. Use emojis. Max 20 words. Language: ${currentLang}.`;
+        const prompt = `Question: "${question}"\nOptions: ${JSON.stringify(options)}\nTask: Give a very short, interesting trivia fact that guides them to the right option ${options.find(o => o.id === req.body.answer)?.text || 'without naming it'}.`;
+
+        const result = await callZeroKeyAI(prompt, systemPrompt, 2);
+
+        if (!result) {
+            return res.json({ text: language === 'ta' ? "மன்னிக்கவும், தற்போது குறிப்பு கிடைக்கவில்லை." : "Clue currently unavailable." });
+        }
+
+        res.json({ text: result });
+    } catch (error) {
+        console.error('Hint API Error:', error.message);
+        res.status(500).json({ error: 'AI hint failed' });
     }
 });
 

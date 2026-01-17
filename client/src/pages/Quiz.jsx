@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FiGlobe, FiCpu, FiCheckCircle, FiXCircle, FiArrowRight, FiAward, FiShare2, FiHelpCircle, FiBookOpen, FiActivity, FiTarget, FiFilter, FiClock } from 'react-icons/fi';
 import API from '../api';
 import { LanguageContext } from '../context/LanguageContext';
+import { AuthContext } from '../context/AuthContext';
+import confetti from 'canvas-confetti';
 
 const CATEGORIES = [
     { id: 'TNPSC Group 4', name: 'TNPSC Group 4', icon: '🏛️', color: 'from-blue-500 to-indigo-600' },
@@ -17,19 +19,20 @@ const CATEGORIES = [
 const SUBJECTS = ["All Subjects", "General Tamil", "History", "INM", "Polity", "Geography", "Economics", "Science", "Biology", "Botany", "Zoology", "Physics", "Chemistry", "Environment", "Agriculture", "TN Administration", "Art & Culture", "Indian Culture", "Psychology", "Teaching Aptitude", "Research Aptitude", "Communication", "World History", "Computer", "Cyber Security", "Sports", "Books & Authors", "Important Days", "Awards & Honours", "Organizations", "Govt Schemes", "Disaster Management", "Banking Awareness", "Marketing", "Insurance", "Accounting", "Labour Laws", "General Knowledge", "English", "Reasoning", "Aptitude"];
 const DIFFICULTIES = ["All Levels", "Easy", "Medium", "Hard"];
 
-const QuizLayout = ({ children, isSidebarOpen, closeSidebar, handleTopicClick, language }) => (
-    <div className="flex min-h-screen pt-24 lg:pt-20">
-        <main className="flex-1 lg:ml-72 w-full max-w-[100vw] overflow-x-hidden">
-            {children}
-        </main>
-    </div>
-);
+import QuizLayout from '../components/QuizLayout';
 
 const Quiz = ({ isSidebarOpen, closeSidebar, handleTopicClick }) => {
     const { language } = useContext(LanguageContext);
+    const { user, updateUser } = useContext(AuthContext); // Get user context for updates
+    const location = useLocation();
+    const gameMode = location.state?.mode || 'standard'; // 'standard', 'survival', 'speedrun'
 
     // UI State Steps: 'category' -> 'filter' -> 'quiz'
-    const [step, setStep] = useState('category');
+    const [step, setStep] = useState(location.state?.mode ? 'quiz' : 'category');
+
+    // Game State
+    const [lives, setLives] = useState(3);
+    const [xpEarned, setXpEarned] = useState(0);
 
     // Selection State
     const [selectedCategory, setSelectedCategory] = useState(null);
@@ -46,9 +49,15 @@ const Quiz = ({ isSidebarOpen, closeSidebar, handleTopicClick }) => {
     const [quizCompleted, setQuizCompleted] = useState(false);
     const [isListening, setIsListening] = useState(false);
     const [transcriptDebug, setTranscriptDebug] = useState("");
+    const [newBadges, setNewBadges] = useState([]); // Store badges won in this session
 
     const [autoRead, setAutoRead] = useState(false);
-    const [timeLeft, setTimeLeft] = useState(30);
+    const [timeLeft, setTimeLeft] = useState(gameMode === 'speedrun' ? 120 : 30); // 120s for speedrun total, 30s per q for others
+
+    // AI Explanation State
+    const [aiExplanation, setAiExplanation] = useState(null);
+    const [loadingAI, setLoadingAI] = useState(false);
+
 
     // Audio State
     const [currentAudio, setCurrentAudio] = useState(null);
@@ -113,12 +122,22 @@ const Quiz = ({ isSidebarOpen, closeSidebar, handleTopicClick }) => {
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [timeLeft, step, loading, quizCompleted, selectedOption]);
+    }, [timeLeft, step, loading, quizCompleted, selectedOption, gameMode]);
 
-    // Reset timer on question change
+
+    // Reset timer on question change (ONLY for standard/survival, NOT speedrun)
     useEffect(() => {
-        setTimeLeft(30);
-    }, [currentQuestionIndex]);
+        if (gameMode !== 'speedrun') {
+            setTimeLeft(30);
+        }
+    }, [currentQuestionIndex, gameMode]);
+
+    // Auto-start for special modes
+    useEffect(() => {
+        if ((gameMode === 'survival' || gameMode === 'speedrun') && step === 'quiz' && questions.length === 0 && !loading) {
+            startQuiz();
+        }
+    }, [gameMode, step, questions.length, loading]);
 
     // Fetch quiz based on selections
     const startQuiz = async () => {
@@ -131,6 +150,9 @@ const Quiz = ({ isSidebarOpen, closeSidebar, handleTopicClick }) => {
 
             if (selectedCategory) {
                 params.append('exam', selectedCategory.id);
+            } else if (gameMode === 'survival' || gameMode === 'speedrun') {
+                // Default to a popular category if none selected for instant play
+                params.append('exam', 'TNPSC Group 4');
             }
 
             if (selectedSubjects.length > 0 && !(selectedSubjects.length === 1 && selectedSubjects[0] === "All Subjects")) {
@@ -144,6 +166,14 @@ const Quiz = ({ isSidebarOpen, closeSidebar, handleTopicClick }) => {
 
             if (selectedDifficulty && selectedDifficulty !== "All Levels") {
                 params.append('difficulty', selectedDifficulty);
+            }
+
+            // Game Mode Specific Config
+            if (gameMode === 'speedrun') {
+                params.append('limit', '20'); // 20 questions for speedrun
+            }
+            if (gameMode === 'survival') {
+                params.append('limit', '50'); // Endless-ish for survival
             }
 
             const res = await API.get(`/quiz?${params.toString()}`);
@@ -217,33 +247,150 @@ const Quiz = ({ isSidebarOpen, closeSidebar, handleTopicClick }) => {
         }
     };
 
+
+
+    // Fetch AI Explanation
+    const fetchAIExplanation = async (question, answer, options) => {
+        setLoadingAI(true);
+        setAiExplanation(null);
+        try {
+            const res = await API.post('/ai/explain', {
+                question,
+                answer,
+                options: options.map(o => o.text_en), // Send English text for better AI context
+                language
+            });
+            setAiExplanation(res.data.text);
+        } catch (error) {
+            console.error("AI Explain Error", error);
+        } finally {
+            setLoadingAI(false);
+        }
+    };
+
     const handleOptionClick = (optionId) => {
         if (selectedOption) return;
         setSelectedOption(optionId);
         const currentQ = questions[currentQuestionIndex];
         const isTa = language !== 'en';
+
+        // Trigger AI Explanation if static explanation is missing or user just answered
+        // We always fetch it now to give that "AI" feel the user asked for
+        const correctOptText = currentQ.options.find(o => o.id === currentQ.correctOptionId)?.[language === 'en' ? 'text_en' : 'text_ta'];
+        fetchAIExplanation(
+            language === 'en' ? currentQ.question_en : currentQ.question_ta,
+            correctOptText,
+            currentQ.options
+        );
+
         if (optionId === currentQ.correctOptionId) {
             setScore(score + 1);
             if (autoRead) speak(isTa ? "சரியான பதில்!" : "Correct Answer!", isTa ? 'ta-IN' : 'en-US');
+
+            // Confetti for correct answer
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#10B981', '#3B82F6']
+            });
+
         } else {
             if (autoRead) speak(isTa ? "அது தவறான பதில்." : "That is incorrect.", isTa ? 'ta-IN' : 'en-US');
+
+            // Survival Mode Logic
+            if (gameMode === 'survival') {
+                setLives(prev => prev - 1);
+                // Shake effect or sound could go here
+                if (lives <= 1) {
+                    // Game Over logic handled in next render or effect, but let's delay it to show explanation
+                    setTimeout(() => finishQuiz(score), 4000); // Give time to read explanation
+                }
+            }
         }
         setShowExplanation(true);
     };
 
+    // Keyboard Navigation
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (step !== 'quiz' || loading || quizCompleted || selectedOption) return;
+            const key = e.key.toUpperCase();
+            const validKeys = ['A', 'B', 'C', 'D', '1', '2', '3', '4'];
+            if (!validKeys.includes(key)) return;
+
+            let index = -1;
+            if (key >= '1' && key <= '4') index = parseInt(key) - 1;
+            else if (key === 'A') index = 0;
+            else if (key === 'B') index = 1;
+            else if (key === 'C') index = 2;
+            else if (key === 'D') index = 3;
+
+            if (index !== -1 && questions[currentQuestionIndex]?.options[index]) {
+                handleOptionClick(questions[currentQuestionIndex].options[index].id);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [step, loading, quizCompleted, selectedOption, currentQuestionIndex, questions]);
+
     const handleNext = () => {
+        if (gameMode === 'survival' && lives <= 0) {
+            finishQuiz(score);
+            return;
+        }
+
         if (currentQuestionIndex < questions.length - 1) {
             setCurrentQuestionIndex(currentQuestionIndex + 1);
             setSelectedOption(null);
             setShowExplanation(false);
+            setAiExplanation(null); // Reset AI
             stopSpeaking();
         } else {
-            setQuizCompleted(true);
-            const msg = language === 'en'
-                ? `Quiz completed. You scored ${score} out of ${questions.length}`
-                : `வினாடி வினா முடிந்தது. உங்கள் மதிப்பெண் ${questions.length} இல் ${score}`;
-            if (autoRead) speak(msg, language === 'en' ? 'en-US' : 'ta-IN');
+            finishQuiz(score + (selectedOption === questions[currentQuestionIndex]?.correctOptionId ? 1 : 0));
         }
+    };
+
+    const finishQuiz = async (finalScore) => {
+        setQuizCompleted(true);
+        stopSpeaking();
+
+        // Calculate XP
+        let bonus = 0;
+        if (gameMode === 'survival') bonus = finalScore * 5; // Bonus for survival
+        if (gameMode === 'speedrun' && timeLeft > 0) bonus = timeLeft * 2; // Time bonus
+
+        try {
+            if (user) {
+                const res = await API.post('/gamification/quiz-result', {
+                    score: finalScore,
+                    totalQuestions: questions.length,
+                    bonus,
+                    mode: gameMode
+                });
+                setXpEarned(res.data.xpGained);
+                if (res.data.newBadges && res.data.newBadges.length > 0) {
+                    setNewBadges(res.data.newBadges);
+                    // More confetti!
+                    setTimeout(() => {
+                        confetti({
+                            particleCount: 150,
+                            spread: 100,
+                            origin: { y: 0.6 },
+                            colors: ['#FFD700', '#FFA500']
+                        });
+                    }, 500);
+                }
+                updateUser(res.data.user);
+            }
+        } catch (error) {
+            console.error("Failed to save progress", error);
+        }
+
+        const msg = language === 'en'
+            ? `Quiz completed. You scored ${finalScore}`
+            : `வினாடி வினா முடிந்தது. உங்கள் மதிப்பெண் ${finalScore}`;
+        if (autoRead) speak(msg, language === 'en' ? 'en-US' : 'ta-IN');
     };
 
     const speak = (text, lang = 'en-US') => {
@@ -490,8 +637,30 @@ const Quiz = ({ isSidebarOpen, closeSidebar, handleTopicClick }) => {
                         <div className="w-24 h-24 mx-auto bg-gradient-to-tr from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-white text-5xl mb-6 shadow-xl shadow-orange-500/30">
                             <FiAward />
                         </div>
-                        <h2 className="text-3xl font-black text-slate-800 dark:text-white mb-2">Quiz Completed!</h2>
-                        <p className="text-slate-500 mb-8 text-lg">You scored <span className="text-blue-600 font-bold text-3xl">{score}</span> / <span className="font-bold text-2xl">{questions.length}</span></p>
+                        <h2 className="text-3xl font-black text-slate-800 dark:text-white mb-2">
+                            {gameMode === 'survival' && lives <= 0 ? (language === 'en' ? 'Game Over!' : 'ஆட்டம் முடிந்தது!') : (language === 'en' ? 'Quiz Completed!' : 'வினாடி வினா முடிந்தது!')}
+                        </h2>
+                        <p className="text-slate-500 mb-4 text-lg">You scored <span className="text-blue-600 font-bold text-3xl">{score}</span> / <span className="font-bold text-2xl">{questions.length}</span></p>
+
+                        {user && (
+                            <div className="mb-8 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800">
+                                <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-1">XP Earned</p>
+                                <p className="text-3xl font-black text-emerald-700 dark:text-emerald-300">+{xpEarned} XP</p>
+                            </div>
+                        )}
+
+                        {newBadges.length > 0 && (
+                            <div className="mb-8 animate-bounce">
+                                <p className="text-sm font-bold text-yellow-600 dark:text-yellow-400 uppercase tracking-widest mb-2">Badge Unlocked!</p>
+                                <div className="flex justify-center gap-4">
+                                    {newBadges.map(badge => (
+                                        <div key={badge} className="px-4 py-2 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 rounded-lg border border-yellow-200 dark:border-yellow-700 font-bold shadow-sm">
+                                            🏅 {badge}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <button onClick={restartQuiz} className="py-4 px-6 rounded-2xl font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
@@ -503,6 +672,7 @@ const Quiz = ({ isSidebarOpen, closeSidebar, handleTopicClick }) => {
                                 setScore(0);
                                 setSelectedOption(null);
                                 setShowExplanation(false);
+                                setNewBadges([]);
                             }} className="py-4 px-6 rounded-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-lg hover:shadow-blue-500/30 transition-all">
                                 Retry Quiz
                             </button>
@@ -525,14 +695,30 @@ const Quiz = ({ isSidebarOpen, closeSidebar, handleTopicClick }) => {
                         <div>
                             <h2 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Question</h2>
                             <span className="text-xl font-black text-slate-800 dark:text-white">
-                                {currentQuestionIndex + 1} <span className="text-slate-400 text-base font-medium">/ {questions.length}</span>
+                                {currentQuestionIndex + 1} <span className="text-slate-400 text-base font-medium">/ {gameMode === 'survival' ? '∞' : questions.length}</span>
                             </span>
                         </div>
 
+
+
                         <div className="flex items-center gap-4">
+                            {gameMode === 'survival' && (
+                                <div className="flex items-center gap-1 mr-2">
+                                    {[...Array(3)].map((_, i) => (
+                                        <motion.span
+                                            key={i}
+                                            animate={{ scale: i < lives ? 1 : 0.8, opacity: i < lives ? 1 : 0.3 }}
+                                            className="text-2xl"
+                                        >
+                                            ❤️
+                                        </motion.span>
+                                    ))}
+                                </div>
+                            )}
                             <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full font-bold text-lg border ${timeLeft <= 10 ? 'bg-red-50 border-red-200 text-red-600 dark:bg-red-900/20 dark:border-red-800' : 'bg-blue-50 border-blue-200 text-blue-600 dark:bg-blue-900/20 dark:border-blue-800'}`}>
                                 <FiClock className={timeLeft <= 10 ? 'animate-pulse' : ''} />
                                 <span>{timeLeft}s</span>
+                                {gameMode === 'speedrun' && <span className="text-xs uppercase ml-1">Total</span>}
                             </div>
                         </div>
                     </div>
@@ -651,13 +837,63 @@ const Quiz = ({ isSidebarOpen, closeSidebar, handleTopicClick }) => {
                                     animate={{ opacity: 1, y: 0, height: 'auto' }}
                                     className="mt-6 md:mt-8 overflow-hidden"
                                 >
-                                    <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 p-5 md:p-6 rounded-2xl">
-                                        <h4 className="flex items-center gap-2 text-blue-800 dark:text-blue-400 font-bold uppercase text-xs tracking-widest mb-2">
-                                            <FiHelpCircle className="text-base" /> Explanation
+                                    <div className={`border p-5 md:p-6 rounded-2xl ${selectedOption === currentQ.correctOptionId
+                                        ? 'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-900/30'
+                                        : 'bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900/30'
+                                        }`}>
+                                        <h4 className={`flex items-center gap-2 font-black uppercase text-sm tracking-widest mb-3 ${selectedOption === currentQ.correctOptionId
+                                            ? 'text-emerald-700 dark:text-emerald-400'
+                                            : 'text-red-700 dark:text-red-400'
+                                            }`}>
+                                            {selectedOption === currentQ.correctOptionId ? (
+                                                <><FiCheckCircle className="text-lg" /> {language === 'en' ? 'Correct Answer!' : 'சரியான பதில்!'}</>
+                                            ) : (
+                                                <><FiXCircle className="text-lg" /> {language === 'en' ? 'Incorrect Answer' : 'தவறான பதில்'}</>
+                                            )}
                                         </h4>
-                                        <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-base md:text-lg">
-                                            {language === 'en' ? currentQ.explanation_en : currentQ.explanation_ta}
-                                        </p>
+
+                                        {(language === 'en' ? currentQ.explanation_en : currentQ.explanation_ta) && (
+                                            <>
+                                                <div className="h-px w-full bg-slate-200 dark:bg-slate-700/50 my-3"></div>
+                                                <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-base md:text-lg">
+                                                    <span className="font-bold block text-xs uppercase text-slate-400 mb-1">Explanation</span>
+                                                    {language === 'en' ? currentQ.explanation_en : currentQ.explanation_ta}
+                                                </p>
+                                            </>
+                                        )}
+
+                                        {/* AI Explanation Section */}
+                                        <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700/50">
+                                            <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold uppercase text-xs tracking-widest mb-2">
+                                                <FiCpu className="text-lg animate-pulse" /> AI Explanation
+                                            </div>
+                                            {loadingAI ? (
+                                                <div className="flex items-center gap-2 text-slate-500 text-sm italic">
+                                                    <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                                                    Thinking...
+                                                </div>
+                                            ) : (
+                                                aiExplanation && (
+                                                    <motion.div
+                                                        initial={{ opacity: 0 }}
+                                                        animate={{ opacity: 1 }}
+                                                        className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-xl text-slate-700 dark:text-slate-300 text-sm md:text-base leading-relaxed border border-indigo-100 dark:border-indigo-900/30"
+                                                    >
+                                                        {aiExplanation}
+                                                    </motion.div>
+                                                )
+                                            )}
+                                        </div>
+
+                                        {/* Show correct answer if wrong */}
+                                        {selectedOption !== currentQ.correctOptionId && (
+                                            <div className="mt-3 p-3 bg-white dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800">
+                                                <p className="text-xs font-bold text-slate-500 uppercase mb-1">{language === 'en' ? 'Correct Answer:' : 'சரியான பதில்:'}</p>
+                                                <p className="text-slate-800 dark:text-slate-200 font-bold">
+                                                    {currentQ.correctOptionId}. {currentQ.options.find(o => o.id === currentQ.correctOptionId)?.[language === 'en' ? 'text_en' : 'text_ta']}
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
                                 </motion.div>
                             )}

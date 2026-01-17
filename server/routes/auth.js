@@ -82,7 +82,12 @@ router.post('/login', validate(loginSchema), async (req, res) => {
                 username: user.username,
                 email: user.email,
                 role: user.role,
-                isAdmin: user.isAdmin
+                isAdmin: user.isAdmin,
+                xp: user.xp,
+                level: user.level,
+                streak: user.streak,
+                shields: user.shields,
+                unlockedIslands: user.unlockedIslands
             }
         });
 

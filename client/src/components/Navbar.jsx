@@ -1,7 +1,7 @@
 import React, { useContext, useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaMoon, FaSun, FaGlobe, FaBars, FaSignInAlt, FaSignOutAlt, FaChartPie, FaUserCircle, FaChevronDown, FaCog } from 'react-icons/fa';
+import { FaMoon, FaSun, FaGlobe, FaBars, FaSignInAlt, FaSignOutAlt, FaChartPie, FaUserCircle, FaChevronDown, FaCog, FaBolt } from 'react-icons/fa';
 import { ThemeContext } from '../context/ThemeContext';
 import { LanguageContext } from '../context/LanguageContext';
 import { AuthContext } from '../context/AuthContext';
@@ -120,6 +120,28 @@ const Navbar = ({ toggleSidebar }) => {
     const { user, logout, isAdmin } = useContext(AuthContext);
     const navigate = useNavigate();
 
+    // Helper to calculate scaling XP progress
+    const getLevelProgress = (totalXp) => {
+        let level = 1;
+        let nextLevelRequirement = 200; // Hardcore Start
+        let xpInCurrentLevel = totalXp || 0;
+
+        while (xpInCurrentLevel >= nextLevelRequirement) {
+            xpInCurrentLevel -= nextLevelRequirement;
+            level++;
+            nextLevelRequirement += 200; // Hardcore Step
+        }
+
+        return {
+            level,
+            xpInLevel: xpInCurrentLevel,
+            totalNeeded: nextLevelRequirement,
+            percentage: (xpInCurrentLevel / nextLevelRequirement) * 100
+        };
+    };
+
+    const progress = getLevelProgress(user?.xp);
+
     const handleLogout = () => {
         logout();
         navigate('/');
@@ -153,13 +175,52 @@ const Navbar = ({ toggleSidebar }) => {
                     </Link>
                 </div>
 
-                {/* Center: Navigation Links (Desktop) */}
-                <div className="hidden md:flex items-center gap-6">
-                    {/* Exam Prep link removed as populated in sidebar */}
-                </div>
+                {/* Center: Navigation Links (Desktop) - Removed Activities here */}
 
                 {/* Right: Actions */}
                 <div className="flex items-center gap-2 md:gap-4">
+                    {/* Gamification Stats (Desktop) */}
+                    {user && (
+                        <div className="hidden sm:flex items-center gap-3 mr-2">
+                            {/* Streak */}
+                            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 dark:bg-orange-900/20 rounded-full border border-orange-100 dark:border-orange-800/50 shadow-sm">
+                                <span className="text-lg">🔥</span>
+                                <span className="text-sm font-black text-orange-600 dark:text-orange-400">{user.streak || 0}</span>
+                            </div>
+
+                            {/* Level/XP */}
+                            <div className="relative group px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-full border border-blue-100 dark:border-blue-800/50 shadow-sm transition-all hover:bg-white dark:hover:bg-blue-900/40">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center text-[10px] font-black group-hover:rotate-[360deg] transition-transform duration-700">
+                                        L{user.level || 1}
+                                    </div>
+                                    <div className="flex flex-col gap-0.5">
+                                        <div className="w-20 h-1.5 bg-blue-200 dark:bg-blue-800/50 rounded-full overflow-hidden relative">
+                                            <motion.div
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${progress.percentage}%` }}
+                                                className="h-full bg-gradient-to-r from-blue-600 to-indigo-500 relative"
+                                            >
+                                                {/* Gloss effect on the bar */}
+                                                <div className="absolute inset-0 bg-white/30 h-1/2"></div>
+                                            </motion.div>
+                                        </div>
+                                        <div className="flex justify-between items-center px-0.5">
+                                            <span className="text-[8px] font-black text-blue-600 dark:text-blue-400 tabular-nums">
+                                                {progress.xpInLevel} / {progress.totalNeeded} <span className="text-[7px] opacity-60">XP</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Hover tooltip for total XP */}
+                                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1.5 bg-slate-900 text-white text-[10px] font-bold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[60] whitespace-nowrap border border-white/10 shadow-xl">
+                                    Total Persistence: {user.xp || 0} XP
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Language (Compact on Mobile) */}
                     <button
                         onClick={toggleLanguage}
